@@ -1,11 +1,12 @@
 project: "Lemonaid"
 tagline: "A public discussion and issues board any website can add with one line"
+updated: 2026-10-31
 phases:
   - id: P1
     name: "First version"
     tasks:
       - id: T1
-        title: "The skeleton: a demo website with an empty Lemonaid board placed on it by one line"
+        title: "Skeleton: a demo website with an empty board added by one line"
         status: done
         effort: 1
         depends_on: []
@@ -17,7 +18,7 @@ phases:
         depends_on: [T1]
         see: "Open it: the board lists a welcome topic. Click it to read it and its reply."
       - id: T3
-        title: "Sign in with your email and a 6-digit code (test mailbox shows the code)"
+        title: "Sign in with email and a 6-digit code (test mailbox)"
         status: done
         effort: 2
         depends_on: [T2]
@@ -36,7 +37,7 @@ phases:
         see: "Copy a screenshot, open it, start a topic and paste it into the text box. The picture shows in the preview and in the posted topic."
       - id: T6
         title: "The built-in bad-word check stops rude posts"
-        status: pending
+        status: done
         effort: 1
         depends_on: [T4]
         see: "Open it and try to post a topic with a swear word in it. It isn't posted, and a friendly note says why."
@@ -47,13 +48,13 @@ phases:
         depends_on: [T4]
         see: "Open it, upvote a topic, and switch the board to Most wanted: that topic moves to the top. Filter by Idea to see only ideas."
       - id: T8
-        title: "The owner's tools: set status, delete posts, flag and block people, and the Owner's room"
+        title: "Owner tools: set status, delete posts, flag and block people, Owner's room"
         status: pending
         effort: 3
         depends_on: [T6, T7]
         see: "Open it and sign in with the owner email shown on the demo page. Topics now have buttons to set a status, delete and flag. The Owner's room lists posts the checks held back, plus people."
       - id: T9
-        title: "Reply emails, with a way to turn them off, and real email sending when set up"
+        title: "Reply emails with an off switch, and real email sending"
         status: pending
         effort: 2
         depends_on: [T4]
@@ -65,7 +66,7 @@ phases:
         depends_on: [T8]
         see: "Open the Owner's room: the AI check shows as off until a key is added. With it on, a nasty post with no swear words gets held back for the owner."
       - id: T11
-        title: "Owner's colour, works well on phones, and the setup guide for the open-source release"
+        title: "Owner's colour, phone-friendly layout, and the open-source setup guide"
         status: pending
         effort: 2
         depends_on: [T8, T9]

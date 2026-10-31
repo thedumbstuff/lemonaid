@@ -1,6 +1,7 @@
 const express = require('express');
 const { userFromRequest } = require('./auth');
 const { renderMarkdown } = require('./markdown');
+const { checkText } = require('./moderation');
 
 const LABELS = ['bug', 'idea', 'question'];
 const MAX_TITLE = 120;
@@ -67,6 +68,8 @@ function createApi(db) {
     if (!LABELS.includes(label)) return res.status(400).json({ error: 'Please pick a label: bug, idea or question.' });
     const problem = bodyProblem(body);
     if (problem) return res.status(400).json({ error: problem });
+    const verdict = checkText(cleanTitle, body);
+    if (!verdict.ok) return res.status(422).json({ error: verdict.reason });
 
     const row = db
       .prepare('INSERT INTO topics (title, body, label, user_id) VALUES (?, ?, ?, ?) RETURNING id')
@@ -81,6 +84,8 @@ function createApi(db) {
     if (!topic) return res.status(404).json({ error: 'No such topic.' });
     const problem = bodyProblem((req.body || {}).body);
     if (problem) return res.status(400).json({ error: problem });
+    const verdict = checkText(req.body.body);
+    if (!verdict.ok) return res.status(422).json({ error: verdict.reason });
 
     const row = db
       .prepare('INSERT INTO replies (topic_id, body, user_id) VALUES (?, ?, ?) RETURNING id')

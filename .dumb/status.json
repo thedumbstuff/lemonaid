@@ -1,7 +1,7 @@
 {
   "step": "build",
   "state": "done",
-  "said": "Signed-in people can now paste a screenshot straight into a topic or reply. It is saved on this computer and shows in the post. Only real pictures up to 5 MB are accepted.",
-  "task": "T5",
-  "see": "Copy a screenshot, open it, sign in, start a topic and paste it into the text box. The picture shows in the preview and in the posted topic."
+  "said": "Rude posts are now stopped before they appear. If a title, topic or reply has offensive language, it is not posted and the person gets a friendly note asking them to reword it. Normal words that only look similar (like Scunthorpe) are fine.",
+  "task": "T6",
+  "see": "Open it, sign in, press New topic and try to post a topic with a swear word in it. It isn't posted, and a friendly note says why."
 }
