@@ -43,7 +43,7 @@ phases:
         see: "Open it and try to post a topic with a swear word in it. It isn't posted, and a friendly note says why."
       - id: T7
         title: "Upvotes, sorting by most wanted, and filters by label and status"
-        status: pending
+        status: done
         effort: 1
         depends_on: [T4]
         see: "Open it, upvote a topic, and switch the board to Most wanted: that topic moves to the top. Filter by Idea to see only ideas."

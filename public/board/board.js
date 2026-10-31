@@ -19,7 +19,8 @@
   function pill(text) { return el('span', { class: 'pill ' + text, text: text }); }
   function show(nodes) { app.replaceChildren.apply(app, nodes); }
   function getJson(url) {
-    return fetch(url).then(function (r) {
+    var token = getToken();
+    return fetch(url, token ? { headers: { Authorization: 'Bearer ' + token } } : undefined).then(function (r) {
       if (!r.ok) throw new Error('not found');
       return r.json();
     });
@@ -38,18 +39,62 @@
     return el('div', { class: 'toolbar' }, [b]);
   }
 
+  // What the board is showing: kept while you move between topics.
+  var view = { sort: 'top', label: '', status: '' };
+
+  function voteButton(t) {
+    var b = el('button', { class: 'vote' + (t.voted ? ' voted' : ''), type: 'button', 'aria-label': 'Upvote', 'aria-pressed': String(!!t.voted) }, [
+      el('span', { class: 'arrow', text: '▲' }), el('span', { text: String(t.vote_count) })
+    ]);
+    b.onclick = function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (!me) { location.hash = '#/signin'; return; }
+      post('/api/topics/' + t.id + '/vote').then(function (d) {
+        t.voted = d.voted; t.vote_count = d.vote_count;
+        b.className = 'vote' + (t.voted ? ' voted' : '');
+        b.setAttribute('aria-pressed', String(t.voted));
+        b.lastChild.textContent = String(t.vote_count);
+      }).catch(function () {});
+    };
+    return b;
+  }
+
+  function picker(label, key, options) {
+    var sel = el('select', { 'aria-label': label }, options.map(function (o) {
+      var opt = el('option', { value: o[0], text: o[1] });
+      if (view[key] === o[0]) opt.selected = true;
+      return opt;
+    }));
+    sel.onchange = function () { view[key] = sel.value; renderList(); };
+    return sel;
+  }
+
+  function filterBar() {
+    return el('div', { class: 'filters' }, [
+      picker('Sort', 'sort', [['top', 'Most wanted'], ['new', 'Newest']]),
+      picker('Label', 'label', [['', 'All labels'], ['bug', 'Bugs'], ['idea', 'Ideas'], ['question', 'Questions']]),
+      picker('Status', 'status', [['', 'Any status'], ['open', 'Open'], ['planned', 'Planned'], ['fixed', 'Fixed']])
+    ]);
+  }
+
   function renderList() {
-    getJson('/api/topics').then(function (data) {
+    var q = '?sort=' + view.sort + (view.label ? '&label=' + view.label : '') + (view.status ? '&status=' + view.status : '');
+    getJson('/api/topics' + q).then(function (data) {
+      var top = el('div', { class: 'toolbar bar' }, [filterBar(), newTopicButton().firstChild]);
       if (!data.topics.length) {
-        return show([newTopicButton(), el('div', { class: 'empty', text: 'No topics yet. Be the first to start one.' })]);
+        var filtered = view.label || view.status;
+        return show([top, el('div', { class: 'empty', text: filtered ? 'No topics match. Try other filters.' : 'No topics yet. Be the first to start one.' })]);
       }
-      show([newTopicButton()].concat(data.topics.map(function (t) {
-        return el('a', { class: 'topic-row', href: '#/topic/' + t.id }, [
-          el('div', { class: 'title', text: t.title }),
-          el('div', { class: 'meta' }, [
-            pill(t.label), pill(t.status),
-            el('span', { text: t.reply_count + (t.reply_count === 1 ? ' reply' : ' replies') }),
-            el('span', { text: 'by ' + t.author + ' · ' + when(t.created_at) })
+      show([top].concat(data.topics.map(function (t) {
+        return el('div', { class: 'topic-row' }, [
+          voteButton(t),
+          el('a', { class: 'topic-link', href: '#/topic/' + t.id }, [
+            el('div', { class: 'title', text: t.title }),
+            el('div', { class: 'meta' }, [
+              pill(t.label), pill(t.status),
+              el('span', { text: t.reply_count + (t.reply_count === 1 ? ' reply' : ' replies') }),
+              el('span', { text: 'by ' + t.author + ' · ' + when(t.created_at) })
+            ])
           ])
         ]);
       })));
@@ -63,7 +108,7 @@
       var t = data.topic;
       var nodes = [
         el('a', { class: 'back', href: '#/', text: '← All topics' }),
-        el('h2', { text: t.title }),
+        el('div', { class: 'head' }, [voteButton(t), el('h2', { text: t.title })]),
         el('div', { class: 'meta' }, [pill(t.label), pill(t.status), el('span', { text: 'by ' + t.author + ' · ' + when(t.created_at) })]),
         rich('post md', t.body_html)
       ];

@@ -28,20 +28,46 @@ function createApi(db) {
     return null;
   }
 
+  const STATUSES = ['open', 'planned', 'fixed'];
+
+  // The board: sort=top (most wanted) or new; optional label= and status= filters.
   api.get('/topics', (req, res) => {
+    const me = userFromRequest(db, req);
+    const where = [];
+    const args = [me ? me.id : 0];
+    if (LABELS.includes(req.query.label)) { where.push('t.label = ?'); args.push(req.query.label); }
+    if (STATUSES.includes(req.query.status)) { where.push('t.status = ?'); args.push(req.query.status); }
+    const order = req.query.sort === 'new'
+      ? 't.created_at DESC, t.id DESC'
+      : 'vote_count DESC, t.created_at DESC, t.id DESC';
     const topics = db
       .prepare(
         `SELECT t.id, t.title, t.label, t.status, t.created_at, u.name AS author,
-                (SELECT COUNT(*) FROM replies r WHERE r.topic_id = t.id) AS reply_count
+                (SELECT COUNT(*) FROM replies r WHERE r.topic_id = t.id) AS reply_count,
+                (SELECT COUNT(*) FROM votes v WHERE v.topic_id = t.id) AS vote_count,
+                EXISTS (SELECT 1 FROM votes v WHERE v.topic_id = t.id AND v.user_id = ?) AS voted
          FROM topics t JOIN users u ON u.id = t.user_id
-         ORDER BY t.created_at DESC, t.id DESC`
+         ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+         ORDER BY ${order}`
       )
-      .all();
+      .all(...args)
+      .map((t) => ({ ...t, voted: !!t.voted }));
     res.json({ topics });
+  });
+
+  // Upvote a topic, or take your upvote back (one per person per topic).
+  api.post('/topics/:id/vote', needSignIn, (req, res) => {
+    const id = Number(req.params.id);
+    if (!db.prepare('SELECT id FROM topics WHERE id = ?').get(id)) return res.status(404).json({ error: 'No such topic.' });
+    const had = db.prepare('DELETE FROM votes WHERE topic_id = ? AND user_id = ? RETURNING 1').get(id, req.user.id);
+    if (!had) db.prepare('INSERT INTO votes (topic_id, user_id) VALUES (?, ?)').run(id, req.user.id);
+    const count = db.prepare('SELECT COUNT(*) AS n FROM votes WHERE topic_id = ?').get(id).n;
+    res.json({ voted: !had, vote_count: count });
   });
 
   api.get('/topics/:id', (req, res) => {
     const id = Number(req.params.id);
+    const me = userFromRequest(db, req);
     const topic = db
       .prepare(
         `SELECT t.id, t.title, t.body, t.label, t.status, t.created_at, u.name AS author
@@ -56,6 +82,8 @@ function createApi(db) {
          WHERE r.topic_id = ? ORDER BY r.created_at, r.id`
       )
       .all(id);
+    topic.vote_count = db.prepare('SELECT COUNT(*) AS n FROM votes WHERE topic_id = ?').get(id).n;
+    topic.voted = !!(me && db.prepare('SELECT 1 FROM votes WHERE topic_id = ? AND user_id = ?').get(id, me.id));
     res.json({ topic: withHtml(topic), replies: replies.map(withHtml) });
   });
 

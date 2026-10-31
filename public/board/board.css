@@ -47,3 +47,15 @@ textarea { resize: vertical; }
 [hidden] { display: none !important; }
 .md img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
 .upload-status.error { min-height: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.filters select { width: auto; padding: 5px 8px; font-size: .9rem; }
+.topic-row { display: flex; align-items: flex-start; gap: 12px; text-decoration: none; }
+.topic-link { flex: 1; min-width: 0; text-decoration: none; display: block; }
+.topic-row:hover { border-color: var(--accent); background: var(--soft); }
+.vote { display: flex; flex-direction: column; align-items: center; min-width: 46px; padding: 4px 8px; line-height: 1.2; }
+.vote .arrow { font-size: .7rem; color: var(--muted); }
+.vote.voted { background: #fff8dc; border-color: var(--accent); font-weight: 700; }
+.vote.voted .arrow { color: #b58900; }
+.head { display: flex; align-items: center; gap: 12px; }
+.head h2 { margin: 0; }

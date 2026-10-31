@@ -1,7 +1,7 @@
 {
   "step": "build",
   "state": "done",
-  "said": "Rude posts are now stopped before they appear. If a title, topic or reply has offensive language, it is not posted and the person gets a friendly note asking them to reword it. Normal words that only look similar (like Scunthorpe) are fine.",
-  "task": "T6",
-  "see": "Open it, sign in, press New topic and try to post a topic with a swear word in it. It isn't posted, and a friendly note says why."
+  "said": "People can now upvote topics (one vote each, press again to take it back). The board puts the most wanted topics first, and can also sort by newest or show only bugs, ideas or questions, or only open, planned or fixed ones.",
+  "task": "T7",
+  "see": "Open it, upvote a topic, and switch the board to Most wanted: that topic moves to the top. Filter by Ideas to see only ideas."
 }
