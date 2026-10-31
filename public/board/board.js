@@ -256,7 +256,12 @@
       };
       var parts = [];
       if (me.is_owner) parts.push(el('a', { href: '#/owner', text: "Owner's room" }));
-      parts.push(el('span', { text: 'Signed in as ' + me.name }), out);
+      parts.push(el('span', { text: 'Signed in as ' + me.name }));
+      var mail = el('button', { class: 'link', type: 'button', text: me.notify ? 'Reply emails: on' : 'Reply emails: off', title: 'Get an email when someone replies to your topics' });
+      mail.onclick = function () {
+        post('/api/auth/notify', { enabled: !me.notify }).then(function (d) { me.notify = d.notify; renderAccount(); }).catch(function () {});
+      };
+      parts.push(mail, out);
       box.replaceChildren.apply(box, parts);
     } else {
       var btn = el('button', { type: 'button', text: 'Sign in' });

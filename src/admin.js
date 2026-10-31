@@ -7,7 +7,7 @@ const KINDS = { topic: 'topics', reply: 'replies' }; // what the web address say
 const STATES = ['visible', 'held', 'deleted'];
 
 // The owner's tools. Every route here is for the owner only (set with OWNER_EMAIL).
-function createAdmin(db, ownerEmail) {
+function createAdmin(db, ownerEmail, notifier = null) {
   const router = express.Router();
 
   router.use((req, res, next) => {
@@ -33,8 +33,11 @@ function createAdmin(db, ownerEmail) {
     if (!table) return res.status(404).json({ error: 'No such post.' });
     const state = (req.body || {}).state;
     if (!STATES.includes(state) || state === 'held') return res.status(400).json({ error: 'Pick visible or deleted.' });
+    const before = db.prepare(`SELECT state FROM ${table} WHERE id = ?`).get(Number(req.params.id));
     const row = db.prepare(`UPDATE ${table} SET state = ? WHERE id = ? RETURNING id`).get(state, Number(req.params.id));
     if (!row) return res.status(404).json({ error: 'No such post.' });
+    // A reply the owner lets through is new to its topic's author, so tell them.
+    if (notifier && table === 'replies' && before.state === 'held' && state === 'visible') notifier.replyPosted(row.id);
     res.json({ ok: true, state });
   });
 

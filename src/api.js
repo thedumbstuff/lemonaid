@@ -7,7 +7,7 @@ const LABELS = ['bug', 'idea', 'question'];
 const MAX_TITLE = 120;
 const MAX_BODY = 10000;
 
-function createApi(db, ownerEmail = '') {
+function createApi(db, ownerEmail = '', notifier = null) {
   const isOwner = (user) => !!user && !!ownerEmail && user.email === ownerEmail;
   const api = express.Router();
 
@@ -134,6 +134,7 @@ function createApi(db, ownerEmail = '') {
     const row = db
       .prepare('INSERT INTO replies (topic_id, body, user_id, state) VALUES (?, ?, ?, ?) RETURNING id')
       .get(id, req.body.body.trim(), req.user.id, state);
+    if (notifier && state === 'visible') notifier.replyPosted(row.id);
     res.status(201).json({ id: row.id, held: state === 'held' });
   });
 

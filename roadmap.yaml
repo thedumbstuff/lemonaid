@@ -55,7 +55,7 @@ phases:
         see: "Open it and sign in with the owner email shown on the demo page. Topics now have buttons to set a status, delete and flag. The Owner's room lists posts the checks held back, plus people."
       - id: T9
         title: "Reply emails with an off switch, and real email sending"
-        status: pending
+        status: done
         effort: 2
         depends_on: [T4]
         see: "Open it, reply to someone else's topic, and open the test mailbox: the topic's author got a reply email with a link back and an unsubscribe link."

@@ -30,7 +30,7 @@ function userFromRequest(db, req) {
   return (
     db
       .prepare(
-        `SELECT u.id, u.email, u.name, u.flagged, u.blocked FROM sessions s JOIN users u ON u.id = s.user_id
+        `SELECT u.id, u.email, u.name, u.flagged, u.blocked, u.notify FROM sessions s JOIN users u ON u.id = s.user_id
          WHERE s.token_hash = ?`
       )
       .get(sha(m[1])) || null
@@ -55,7 +55,7 @@ function createAuth(db, mailer, ownerEmail = '') {
   }
 
   // Step 1: ask for a code.
-  router.post('/request-code', (req, res) => {
+  router.post('/request-code', async (req, res) => {
     const email = cleanEmail(req.body && req.body.email);
     if (!email) return res.status(400).json({ error: 'Please type a valid email address.' });
     if (ipTooBusy(req.ip)) {
@@ -74,11 +74,16 @@ function createAuth(db, mailer, ownerEmail = '') {
     db.prepare(
       'INSERT INTO login_codes (email, code_hash, expires_at, created_at) VALUES (?, ?, ?, ?)'
     ).run(email, codeHash(email, code), now + CODE_LIFETIME_MS, now);
-    mailer.send({
-      to: email,
-      subject: `Your Lemonaid code: ${code}`,
-      body: `Your sign-in code is ${code}\n\nIt works for 10 minutes. If you did not ask for it, you can ignore this email.`,
-    });
+    try {
+      await mailer.send({
+        to: email,
+        subject: `Your Lemonaid code: ${code}`,
+        body: `Your sign-in code is ${code}\n\nIt works for 10 minutes. If you did not ask for it, you can ignore this email.`,
+      });
+    } catch (err) {
+      console.error('Could not send a sign-in email:', err.message);
+      return res.status(502).json({ error: 'We could not send the email just now. Please try again in a little while.' });
+    }
     res.json({ ok: true });
   });
 
@@ -102,10 +107,10 @@ function createAuth(db, mailer, ownerEmail = '') {
     }
     db.prepare('DELETE FROM login_codes WHERE email = ?').run(email);
 
-    let user = db.prepare('SELECT id, email, name FROM users WHERE email = ?').get(email);
+    let user = db.prepare('SELECT id, email, name, notify FROM users WHERE email = ?').get(email);
     if (!user) {
       user = db
-        .prepare('INSERT INTO users (email, name) VALUES (?, ?) RETURNING id, email, name')
+        .prepare('INSERT INTO users (email, name) VALUES (?, ?) RETURNING id, email, name, notify')
         .get(email, nameFromEmail(email));
     }
     const token = crypto.randomBytes(32).toString('base64url');
@@ -114,7 +119,7 @@ function createAuth(db, mailer, ownerEmail = '') {
       user.id,
       Date.now()
     );
-    res.json({ token, user: { name: user.name, is_owner: isOwner(user.email) } });
+    res.json({ token, user: { name: user.name, is_owner: isOwner(user.email), notify: !!user.notify } });
   });
 
   router.post('/logout', (req, res) => {
@@ -126,7 +131,17 @@ function createAuth(db, mailer, ownerEmail = '') {
   router.get('/me', (req, res) => {
     const user = userFromRequest(db, req);
     if (!user) return res.status(401).json({ error: 'Not signed in.' });
-    res.json({ user: { name: user.name, is_owner: isOwner(user.email) } });
+    res.json({ user: { name: user.name, is_owner: isOwner(user.email), notify: !!user.notify } });
+  });
+
+  // Turn reply emails on or off.
+  router.post('/notify', (req, res) => {
+    const user = userFromRequest(db, req);
+    if (!user) return res.status(401).json({ error: 'Please sign in first.' });
+    const enabled = req.body && req.body.enabled;
+    if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'Nothing changed.' });
+    db.prepare('UPDATE users SET notify = ? WHERE id = ?').run(enabled ? 1 : 0, user.id);
+    res.json({ notify: enabled });
   });
 
   return router;

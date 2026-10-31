@@ -34,6 +34,10 @@ function openDb(file) {
       user_id INTEGER NOT NULL REFERENCES users(id),
       PRIMARY KEY (topic_id, user_id)
     );
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS login_codes (
       id INTEGER PRIMARY KEY,
       email TEXT NOT NULL,
@@ -65,6 +69,7 @@ function openDb(file) {
   // Added later: older data files get the new columns too.
   addColumn(db, 'users', 'flagged', 'INTEGER NOT NULL DEFAULT 0'); // owner marked this person as a problem
   addColumn(db, 'users', 'blocked', 'INTEGER NOT NULL DEFAULT 0'); // this person may not post
+  addColumn(db, 'users', 'notify', 'INTEGER NOT NULL DEFAULT 1'); // wants an email when someone replies
   addColumn(db, 'topics', 'state', "TEXT NOT NULL DEFAULT 'visible'"); // visible | held | deleted
   addColumn(db, 'replies', 'state', "TEXT NOT NULL DEFAULT 'visible'");
   seedWelcome(db);
@@ -81,7 +86,7 @@ function seedWelcome(db) {
   const has = db.prepare('SELECT COUNT(*) AS n FROM topics').get().n;
   if (has) return;
   const user = db
-    .prepare("INSERT INTO users (email, name) VALUES ('team@lemonaid.local', 'lemonaid') RETURNING id")
+    .prepare("INSERT INTO users (email, name, notify) VALUES ('team@lemonaid.local', 'lemonaid', 0) RETURNING id")
     .get();
   const topic = db
     .prepare(

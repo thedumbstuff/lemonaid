@@ -1,7 +1,7 @@
 {
   "step": "build",
   "state": "done",
-  "said": "The owner now has tools. They can mark a topic open, planned or fixed, delete topics and replies (and bring them back), and flag or block people. Posts from flagged people wait in an Owner's room until the owner lets them through.",
-  "task": "T8",
-  "see": "Open it and sign in with owner@lemonaid.local (the demo page shows it; the code is in the test mailbox). Topics now have an Owner bar to set a status, delete and flag. The Owner's room link at the top lists posts waiting for you, deleted posts, and people."
+  "said": "People now get an email when someone replies to their topic, with a link back and a link to turn these emails off. They can also switch them on or off from the board. Real email sending is ready: it only needs an email service address, which you add later.",
+  "task": "T9",
+  "see": "Open it, sign in as one person and start a topic. Sign in as someone else (another email), reply to it, then open the test mailbox: the first person got a reply email with a link back and a turn-off link."
 }
