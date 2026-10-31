@@ -1,7 +1,7 @@
 {
   "step": "build",
   "state": "done",
-  "said": "People now get an email when someone replies to their topic, with a link back and a link to turn these emails off. They can also switch them on or off from the board. Real email sending is ready: it only needs an email service address, which you add later.",
-  "task": "T9",
-  "see": "Open it, sign in as one person and start a topic. Sign in as someone else (another email), reply to it, then open the test mailbox: the first person got a reply email with a link back and a turn-off link."
+  "said": "The owner can now switch on an AI check from the Owner's room. Once on, posts that look rude, hateful, threatening or spammy wait for the owner even if they have no swear words, with a short reason. It shows as off until an Anthropic key is added, and I could only test it with a stand-in because there is no key on this computer.",
+  "task": "T10",
+  "see": "Open it and sign in as the owner (owner@lemonaid.local). The Owner's room shows 'AI check: off' with a note about adding a key. With a key added, the Switch on button appears, and a nasty post with no swear words is held in 'Waiting for you' with the reason."
 }

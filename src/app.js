@@ -7,6 +7,7 @@ const { createMailer } = require('./mailer');
 const { createImages, serveImages } = require('./images');
 const { createAdmin } = require('./admin');
 const { createNotifier } = require('./notify');
+const { createAiCheck } = require('./ai');
 
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -15,6 +16,7 @@ const escapeHtml = (s) =>
 // options.ownerEmail: who runs this board (default: OWNER_EMAIL; in try-out mode owner@lemonaid.local).
 // options.publicUrl: the web address of this board, used in emails (default: PUBLIC_URL, or http://localhost:3000).
 // options.smtpUrl, options.mailFrom, options.mailTransport: how to send real email (see mailer.js).
+// options.aiClient: a ready-made Anthropic client (for the checks); otherwise ANTHROPIC_API_KEY is used.
 // options.testMailbox: show the test mailbox page (default: on, except in production).
 function createApp(options = {}) {
   const app = express();
@@ -25,6 +27,7 @@ function createApp(options = {}) {
   const mailer = createMailer(db, { smtpUrl: options.smtpUrl, mailFrom: options.mailFrom, transport: options.mailTransport, tryOutMode });
   const publicUrl = options.publicUrl || process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`;
   const notifier = createNotifier({ db, mailer, publicUrl });
+  const ai = createAiCheck({ db, client: options.aiClient, model: options.aiModel });
   const configuredOwner = (options.ownerEmail || process.env.OWNER_EMAIL || '').trim().toLowerCase();
   const usingDemoOwner = !configuredOwner && tryOutMode;
   const ownerEmail = configuredOwner || (usingDemoOwner ? 'owner@lemonaid.local' : '');
@@ -38,10 +41,10 @@ function createApp(options = {}) {
   app.use(notifier.router); // the "turn off reply emails" page
   app.use(express.json({ limit: '100kb' }));
   app.use('/api/auth', createAuth(db, mailer, ownerEmail));
-  app.use('/api/admin', createAdmin(db, ownerEmail, notifier));
+  app.use('/api/admin', createAdmin(db, ownerEmail, notifier, ai));
   // Only in try-out mode: tells the demo page which email to use to try the owner's tools.
   app.get('/api/config', (req, res) => res.json({ demoOwnerEmail: usingDemoOwner ? ownerEmail : null }));
-  app.use('/api', createApi(db, ownerEmail, notifier));
+  app.use('/api', createApi(db, ownerEmail, notifier, ai));
 
   // The test mailbox: shows the emails Lemonaid "sent", so you can try sign-in without an
   // email account. Never shown in production.

@@ -70,3 +70,6 @@ button.small { font-size: .8rem; padding: 3px 10px; }
 .person { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
 .person .pill { margin-left: 6px; }
 .person .owner-actions { margin-top: 6px; }
+.ai-box { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 12px 0; background: var(--soft); }
+.ai-box .hint { margin: 4px 0 8px; }
+.hold-reason { color: #b54708; font-size: .85rem; margin: 6px 0; }

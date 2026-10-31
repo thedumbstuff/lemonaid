@@ -170,6 +170,29 @@
     return bar;
   }
 
+  // The optional AI check: a switch, shown as off (and explained) until a key is added.
+  function aiBox(ai) {
+    var box = el('div', { class: 'ai-box' });
+    var note = el('span', { class: 'owner-note', role: 'status' });
+    var title = el('b', { text: 'AI check: ' + (ai.enabled ? 'on' : 'off') });
+    var text;
+    if (!ai.available) text = 'Off until a key is added. To turn it on, set ANTHROPIC_API_KEY (from console.anthropic.com) where Lemonaid runs and restart it.';
+    else if (ai.enabled) text = 'New posts are read by Claude (' + ai.model + ') first. Rude, hateful, threatening or spammy ones wait here for you, even without swear words.';
+    else text = 'A key is set up. Switch it on and posts that look rude, hateful, threatening or spammy will wait here for you, even without swear words.';
+    box.appendChild(title);
+    box.appendChild(el('p', { class: 'hint', text: text }));
+    if (ai.available) {
+      var b = el('button', { type: 'button', class: 'small', text: ai.enabled ? 'Switch off' : 'Switch on' });
+      b.onclick = function () {
+        b.disabled = true;
+        adminPost('/api/admin/ai', { enabled: !ai.enabled }).then(renderOwnerRoom).catch(function (err) { note.textContent = err.message; b.disabled = false; });
+      };
+      box.appendChild(b);
+      box.appendChild(note);
+    }
+    return box;
+  }
+
   function renderOwnerRoom() {
     if (!me || !me.is_owner) { location.hash = '#/'; return; }
     getJson('/api/admin/overview').then(function (data) {
@@ -179,6 +202,7 @@
           el('div', { class: 'meta', text: where + ' · by ' + p.author + ' · ' + when(p.created_at) }),
           rich('md', p.body_html)
         ]);
+        if (p.hold_reason) card.insertBefore(el('div', { class: 'hold-reason', text: 'Why it is waiting: ' + p.hold_reason }), card.firstChild.nextSibling);
         card.appendChild(ownerActions(buttons));
         return card;
       }
@@ -189,6 +213,7 @@
       }
       var nodes = [el('a', { class: 'back', href: '#/', text: '← All topics' }), el('h2', { text: "Owner's room" })];
 
+      nodes.push(aiBox(data.ai));
       nodes.push(el('h3', { text: 'Waiting for you (' + data.held.length + ')' }));
       nodes.push(el('p', { class: 'hint', text: 'Posts from people you flagged wait here until you let them through.' }));
       if (!data.held.length) nodes.push(el('div', { class: 'empty small', text: 'Nothing is waiting.' }));

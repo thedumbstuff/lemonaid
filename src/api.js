@@ -7,7 +7,7 @@ const LABELS = ['bug', 'idea', 'question'];
 const MAX_TITLE = 120;
 const MAX_BODY = 10000;
 
-function createApi(db, ownerEmail = '', notifier = null) {
+function createApi(db, ownerEmail = '', notifier = null, ai = null) {
   const isOwner = (user) => !!user && !!ownerEmail && user.email === ownerEmail;
   const api = express.Router();
 
@@ -32,6 +32,19 @@ function createApi(db, ownerEmail = '', notifier = null) {
 
   // People the owner has flagged have their posts held for the owner to look at first.
   const stateFor = (user) => (user.flagged && !isOwner(user) ? 'held' : 'visible');
+
+  // Decides if a new post is published or held, and why. The owner's own posts always go
+  // straight through. The AI check (when the owner switched it on) only looks at posts
+  // that passed everything else.
+  async function decide(user, ...parts) {
+    const state = stateFor(user);
+    if (state === 'held') return { state, reason: 'Written by a person you flagged.' };
+    if (ai && ai.enabled() && !isOwner(user)) {
+      const verdict = await ai.check(...parts);
+      if (verdict.hold) return { state: 'held', reason: 'AI check: ' + verdict.reason };
+    }
+    return { state: 'visible', reason: null };
+  }
 
   // Checks the text of a post. Returns an error message, or null when fine.
   function bodyProblem(body) {
@@ -102,7 +115,7 @@ function createApi(db, ownerEmail = '', notifier = null) {
   });
 
   // Start a topic.
-  api.post('/topics', needCanWrite, (req, res) => {
+  api.post('/topics', needCanWrite, async (req, res) => {
     const { title, body, label } = req.body || {};
     const cleanTitle = typeof title === 'string' ? title.trim().replace(/\s+/g, ' ') : '';
     if (cleanTitle.length < 3) return res.status(400).json({ error: 'Please give your topic a title (at least 3 letters).' });
@@ -113,15 +126,15 @@ function createApi(db, ownerEmail = '', notifier = null) {
     const verdict = checkText(cleanTitle, body);
     if (!verdict.ok) return res.status(422).json({ error: verdict.reason });
 
-    const state = stateFor(req.user);
+    const { state, reason } = await decide(req.user, cleanTitle, body);
     const row = db
-      .prepare('INSERT INTO topics (title, body, label, user_id, state) VALUES (?, ?, ?, ?, ?) RETURNING id')
-      .get(cleanTitle, body.trim(), label, req.user.id, state);
+      .prepare('INSERT INTO topics (title, body, label, user_id, state, hold_reason) VALUES (?, ?, ?, ?, ?, ?) RETURNING id')
+      .get(cleanTitle, body.trim(), label, req.user.id, state, reason);
     res.status(201).json({ id: row.id, held: state === 'held' });
   });
 
   // Reply to a topic.
-  api.post('/topics/:id/replies', needCanWrite, (req, res) => {
+  api.post('/topics/:id/replies', needCanWrite, async (req, res) => {
     const id = Number(req.params.id);
     const topic = db.prepare("SELECT id FROM topics WHERE id = ? AND state = 'visible'").get(id);
     if (!topic) return res.status(404).json({ error: 'No such topic.' });
@@ -130,10 +143,10 @@ function createApi(db, ownerEmail = '', notifier = null) {
     const verdict = checkText(req.body.body);
     if (!verdict.ok) return res.status(422).json({ error: verdict.reason });
 
-    const state = stateFor(req.user);
+    const { state, reason } = await decide(req.user, req.body.body);
     const row = db
-      .prepare('INSERT INTO replies (topic_id, body, user_id, state) VALUES (?, ?, ?, ?) RETURNING id')
-      .get(id, req.body.body.trim(), req.user.id, state);
+      .prepare('INSERT INTO replies (topic_id, body, user_id, state, hold_reason) VALUES (?, ?, ?, ?, ?) RETURNING id')
+      .get(id, req.body.body.trim(), req.user.id, state, reason);
     if (notifier && state === 'visible') notifier.replyPosted(row.id);
     res.status(201).json({ id: row.id, held: state === 'held' });
   });

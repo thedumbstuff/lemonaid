@@ -7,7 +7,7 @@ const KINDS = { topic: 'topics', reply: 'replies' }; // what the web address say
 const STATES = ['visible', 'held', 'deleted'];
 
 // The owner's tools. Every route here is for the owner only (set with OWNER_EMAIL).
-function createAdmin(db, ownerEmail, notifier = null) {
+function createAdmin(db, ownerEmail, notifier = null, ai = null) {
   const router = express.Router();
 
   router.use((req, res, next) => {
@@ -58,19 +58,36 @@ function createAdmin(db, ownerEmail, notifier = null) {
     res.json({ flagged: !!now.flagged, blocked: !!now.blocked });
   });
 
+  // The AI check: whether a key is set up, and whether the owner has switched it on.
+  const aiStatus = () => ({
+    available: !!ai && ai.available,
+    enabled: !!ai && ai.enabled(),
+    model: ai ? ai.model : null,
+  });
+
+  router.post('/ai', (req, res) => {
+    const enabled = (req.body || {}).enabled;
+    if (typeof enabled !== 'boolean') return res.status(400).json({ error: 'Nothing changed.' });
+    if (enabled && !(ai && ai.available)) {
+      return res.status(400).json({ error: 'The AI check needs an Anthropic key first. Set ANTHROPIC_API_KEY and restart Lemonaid.' });
+    }
+    if (ai) ai.setEnabled(enabled);
+    res.json(aiStatus());
+  });
+
   // Everything the Owner's room shows.
   router.get('/overview', (req, res) => {
     const posts = (state) => {
       const topics = db
         .prepare(
-          `SELECT t.id, t.title, t.body, t.label, t.created_at, u.id AS author_id, u.name AS author
+          `SELECT t.id, t.title, t.body, t.label, t.created_at, t.hold_reason, u.id AS author_id, u.name AS author
            FROM topics t JOIN users u ON u.id = t.user_id WHERE t.state = ? ORDER BY t.id DESC LIMIT 100`
         )
         .all(state)
         .map((t) => ({ kind: 'topic', ...t, body_html: renderMarkdown(t.body), body: undefined }));
       const replies = db
         .prepare(
-          `SELECT r.id, r.topic_id, r.body, r.created_at, u.id AS author_id, u.name AS author
+          `SELECT r.id, r.topic_id, r.body, r.created_at, r.hold_reason, u.id AS author_id, u.name AS author
            FROM replies r JOIN users u ON u.id = r.user_id WHERE r.state = ? ORDER BY r.id DESC LIMIT 100`
         )
         .all(state)
@@ -86,7 +103,7 @@ function createAdmin(db, ownerEmail, notifier = null) {
       )
       .all()
       .map((u) => ({ ...u, flagged: !!u.flagged, blocked: !!u.blocked, is_owner: u.email === ownerEmail }));
-    res.json({ held: posts('held'), deleted: posts('deleted'), users });
+    res.json({ held: posts('held'), deleted: posts('deleted'), users, ai: aiStatus() });
   });
 
   return router;

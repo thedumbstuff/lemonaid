@@ -70,6 +70,8 @@ function openDb(file) {
   addColumn(db, 'users', 'flagged', 'INTEGER NOT NULL DEFAULT 0'); // owner marked this person as a problem
   addColumn(db, 'users', 'blocked', 'INTEGER NOT NULL DEFAULT 0'); // this person may not post
   addColumn(db, 'users', 'notify', 'INTEGER NOT NULL DEFAULT 1'); // wants an email when someone replies
+  addColumn(db, 'topics', 'hold_reason', 'TEXT'); // why a post is waiting for the owner
+  addColumn(db, 'replies', 'hold_reason', 'TEXT');
   addColumn(db, 'topics', 'state', "TEXT NOT NULL DEFAULT 'visible'"); // visible | held | deleted
   addColumn(db, 'replies', 'state', "TEXT NOT NULL DEFAULT 'visible'");
   seedWelcome(db);

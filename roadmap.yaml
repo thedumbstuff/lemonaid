@@ -61,7 +61,7 @@ phases:
         see: "Open it, reply to someone else's topic, and open the test mailbox: the topic's author got a reply email with a link back and an unsubscribe link."
       - id: T10
         title: "The optional AI check the owner can switch on"
-        status: pending
+        status: done
         effort: 2
         depends_on: [T8]
         see: "Open the Owner's room: the AI check shows as off until a key is added. With it on, a nasty post with no swear words gets held back for the owner."
