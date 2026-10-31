@@ -7,8 +7,8 @@
     "plan": 1793429879681
   },
   "last": {
-    "step": "build",
-    "text": "T11"
+    "step": "fix",
+    "text": "Rude posts stopped, owner can delete and flag, optional AI check: The bad-word check, deleting and flagging all worked. The AI check could not be tried: it shows OFF because there is no Anthropic key here. To try it, add a key (see the README), then switch it on in the Owner's room."
   },
-  "autoBuild": true
+  "autoBuild": false
 }

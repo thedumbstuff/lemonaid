@@ -1,7 +1,6 @@
 {
-  "step": "build",
+  "step": "fix",
   "state": "done",
-  "said": "Lemonaid is now ready to share. The owner can set the board's colour to match their site, the board fits phones and grows to the right height, and the project has a setup guide (README), an MIT licence and an example settings file. That was the last task in the plan.",
-  "task": "T11",
-  "see": "Open it: under the board on the demo page, pick a colour and the board changes to match, and the line to copy updates. Make the browser window narrow like a phone and the board still reads well. The project folder now has README.md, LICENSE and .env.example."
+  "said": "This was not a fault: the AI check cannot be tried without an Anthropic key, and only you can get one. I added 4 checks that run the AI check through the real Anthropic library against a pretend Anthropic on this computer. They prove what gets sent, that a 'hold' answer is read, and that errors never block posts. They cannot prove Anthropic accepts the request, so the first real post is still the real test.",
+  "see": "To try it for real: get a key at console.anthropic.com, put the line ANTHROPIC_API_KEY=your-key in a file called .env in the project folder (it is never committed), restart Lemonaid, then open the Owner's room and press Switch on. Post something nasty without swear words and it waits there with a reason."
 }

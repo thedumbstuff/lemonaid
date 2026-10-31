@@ -1,0 +1,14 @@
+{
+  "items": [
+    { "name": "Run your own copy and add the board to any website with one line", "ok": true, "plain": "The demo website has the one line, the line adds the board, and the board page opens." },
+    { "name": "Read every topic and reply, with no need to sign in", "ok": true, "plain": "Read the welcome topic and its reply without signing in." },
+    { "name": "Sign in with just your email and a one-time code", "ok": true, "plain": "The 6-digit code arrived in the test mailbox and signed me in as 'ann' (the email is not shown). A wrong code was refused." },
+    { "name": "Start a topic (bug, idea or question) or reply, with text, links, code and screenshots", "ok": true, "plain": "Posted a Bug topic with a link, a code block and a pasted screenshot; another person replied. All showed correctly, and harmful code came back as plain text." },
+    { "name": "Upvote topics, see statuses set by the owner", "ok": true, "plain": "Two upvotes moved the topic to the top, and taking a vote back worked. Only the owner could mark it Planned, and the filters found it." },
+    { "name": "Get an email when someone replies to your post", "ok": true, "plain": "The topic's author got 'bob replied to ...' in the test mailbox, with a link back and a turn-off link." },
+    { "name": "Rude posts stopped, owner can delete and flag, optional AI check", "ok": false, "plain": "The bad-word check, deleting and flagging all worked. The AI check could not be tried: it shows OFF because there is no Anthropic key here. To try it, add a key (see the README), then switch it on in the Owner's room." },
+    { "name": "The automatic checks", "ok": true, "plain": "All 80 pass." }
+  ],
+  "open": { "how": "url", "what": "http://localhost:3000" },
+  "said": "7 of 8 things work. The AI check needs a key to try. I tried everything through requests, not by clicking in a browser, and the copy already running at the address is an older one: restart it to see the latest."
+}
