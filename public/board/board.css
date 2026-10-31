@@ -15,7 +15,7 @@ header { display: flex; align-items: center; justify-content: space-between; gap
 .pill.question { border-color: #b9d2f5; background: #eaf2fe; }
 .back { display: inline-block; margin-bottom: 12px; color: var(--muted); font-size: .9rem; }
 h2 { margin: 0 0 6px; font-size: 1.3rem; }
-.post { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 12px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.post { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 12px 0; overflow-wrap: anywhere; }
 .reply { margin-left: 16px; background: var(--soft); }
 h3 { margin: 20px 0 0; font-size: 1rem; color: var(--muted); }
 #account { font-size: .9rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
@@ -28,3 +28,20 @@ form.card p { margin: 0; color: var(--muted); font-size: .9rem; }
 input { font: inherit; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; width: 100%; }
 input.code { font-size: 1.5rem; letter-spacing: .4em; text-align: center; }
 .error { color: #b42318; font-size: .9rem; min-height: 1.2em; }
+.toolbar { margin-bottom: 14px; }
+.md > :first-child { margin-top: 0; }
+.md > :last-child { margin-bottom: 0; }
+.md p { margin: .6em 0; }
+.md code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: .9em; }
+.md pre { background: #111827; color: #f9fafb; padding: 10px 12px; border-radius: 6px; overflow-x: auto; }
+.md pre code { background: none; padding: 0; color: inherit; }
+.md blockquote { margin: .6em 0; padding-left: 12px; border-left: 3px solid var(--line); color: var(--muted); }
+form.write { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+form.write .row { display: flex; gap: 8px; }
+form.write .row select { width: auto; }
+textarea, select { font: inherit; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; width: 100%; background: #fff; }
+textarea { resize: vertical; }
+.preview { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; min-height: 6em; background: var(--soft); }
+.help { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; color: var(--muted); font-size: .8rem; }
+.help .link { font-size: .8rem; }
+[hidden] { display: none !important; }

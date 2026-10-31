@@ -49,7 +49,7 @@ test('the board lists the welcome topic', async () => {
 test('a topic opens with its reply', async () => {
   const list = await (await fetch(base + '/api/topics')).json();
   const data = await (await fetch(base + '/api/topics/' + list.topics[0].id)).json();
-  assert.match(data.topic.body, /public space/);
+  assert.match(data.topic.body_html, /public space/);
   assert.equal(data.replies.length, 1);
 });
 

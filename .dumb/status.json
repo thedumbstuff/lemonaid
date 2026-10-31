@@ -1,7 +1,7 @@
 {
   "step": "build",
   "state": "done",
-  "said": "People can now sign in with just their email and a 6-digit code. The code appears in a test mailbox page while you try it out, and a signed-in person is shown by a short name, never their email.",
-  "task": "T3",
-  "see": "Open it, press Sign in and type any email. Open the test mailbox link on the demo page to see the code, type it in, and the board shows 'Signed in as' with your name."
+  "said": "Signed-in people can now start a topic (picking Bug, Idea or Question) and reply to others. Posts can have bold text, links and code, with a Preview button, and nobody can sneak harmful code into a post.",
+  "task": "T4",
+  "see": "Open it, sign in, press New topic, pick the label Bug, write a few lines with a link and some code, and post it. It shows on the board. Then open it and write a reply."
 }

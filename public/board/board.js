@@ -25,12 +25,25 @@
     });
   }
 
+  // Post text arrives from our server already turned into safe HTML (see src/markdown.js).
+  function rich(cls, htmlText) {
+    var node = el('div', { class: cls });
+    node.innerHTML = htmlText;
+    return node;
+  }
+
+  function newTopicButton() {
+    var b = el('button', { class: 'primary', type: 'button', text: 'New topic' });
+    b.onclick = function () { location.hash = me ? '#/new' : '#/signin'; };
+    return el('div', { class: 'toolbar' }, [b]);
+  }
+
   function renderList() {
     getJson('/api/topics').then(function (data) {
       if (!data.topics.length) {
-        return show([el('div', { class: 'empty', text: 'No topics yet. Questions, ideas and problems will show up here.' })]);
+        return show([newTopicButton(), el('div', { class: 'empty', text: 'No topics yet. Be the first to start one.' })]);
       }
-      show(data.topics.map(function (t) {
+      show([newTopicButton()].concat(data.topics.map(function (t) {
         return el('a', { class: 'topic-row', href: '#/topic/' + t.id }, [
           el('div', { class: 'title', text: t.title }),
           el('div', { class: 'meta' }, [
@@ -39,7 +52,7 @@
             el('span', { text: 'by ' + t.author + ' · ' + when(t.created_at) })
           ])
         ]);
-      }));
+      })));
     }).catch(function () {
       show([el('div', { class: 'empty', text: 'The board could not be loaded. Please try again.' })]);
     });
@@ -52,17 +65,18 @@
         el('a', { class: 'back', href: '#/', text: '← All topics' }),
         el('h2', { text: t.title }),
         el('div', { class: 'meta' }, [pill(t.label), pill(t.status), el('span', { text: 'by ' + t.author + ' · ' + when(t.created_at) })]),
-        el('div', { class: 'post', text: t.body })
+        rich('post md', t.body_html)
       ];
       if (data.replies.length) {
         nodes.push(el('h3', { text: data.replies.length + (data.replies.length === 1 ? ' reply' : ' replies') }));
         data.replies.forEach(function (r) {
           nodes.push(el('div', { class: 'post reply' }, [
             el('div', { class: 'meta', text: r.author + ' · ' + when(r.created_at) }),
-            el('div', { text: r.body })
+            rich('md', r.body_html)
           ]));
         });
       }
+      nodes.push(replyBox(id));
       show(nodes);
     }).catch(function () {
       show([el('a', { class: 'back', href: '#/', text: '← All topics' }), el('div', { class: 'empty', text: 'That topic could not be found.' })]);
@@ -169,9 +183,78 @@
     code.focus();
   }
 
+  // ---- Writing ----------------------------------------------------------------
+  var HELP = 'You can use **bold**, `code`, links, and ``` on its own line to start and end a block of code.';
+
+  // A text box with a Preview button underneath. Returns { box, input }.
+  function editor(placeholder, rows) {
+    var input = el('textarea', { rows: String(rows), placeholder: placeholder, required: 'required', maxlength: '10000', 'aria-label': 'Your text' });
+    var preview = el('div', { class: 'md preview', hidden: 'hidden' });
+    var toggle = el('button', { class: 'link', type: 'button', text: 'Preview' });
+    var showing = false;
+    toggle.onclick = function () {
+      showing = !showing;
+      if (!showing) { preview.hidden = true; input.hidden = false; toggle.textContent = 'Preview'; return; }
+      post('/api/preview', { body: input.value }).then(function (d) {
+        preview.innerHTML = d.html || '<p><em>Nothing to preview yet.</em></p>';
+        preview.hidden = false; input.hidden = true; toggle.textContent = 'Back to editing';
+      }).catch(function () { showing = false; });
+    };
+    var box = el('div', { class: 'editor' }, [input, preview, el('div', { class: 'help' }, [toggle, el('span', { text: HELP })])]);
+    return { box: box, input: input };
+  }
+
+  function replyBox(topicId) {
+    if (!me) {
+      var b = el('button', { type: 'button', text: 'Sign in to reply' });
+      b.onclick = function () { location.hash = '#/signin'; };
+      return el('div', { class: 'toolbar' }, [b]);
+    }
+    var ed = editor('Write a reply…', 4);
+    var error = el('div', { class: 'error', role: 'alert' });
+    var go = el('button', { class: 'primary', type: 'submit', text: 'Reply' });
+    var form = el('form', { class: 'write' }, [el('h3', { text: 'Your reply' }), ed.box, error, go]);
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      error.textContent = ''; go.disabled = true;
+      post('/api/topics/' + topicId + '/replies', { body: ed.input.value }).then(function () {
+        renderTopic(topicId);
+      }).catch(function (err) { error.textContent = err.message; go.disabled = false; });
+    };
+    return form;
+  }
+
+  function renderNew() {
+    if (!me) { location.hash = '#/signin'; return; }
+    var error = el('div', { class: 'error', role: 'alert' });
+    var title = el('input', { type: 'text', placeholder: 'A short title', required: 'required', maxlength: '120', 'aria-label': 'Title' });
+    var label = el('select', { 'aria-label': 'Label' }, [
+      el('option', { value: 'question', text: 'Question' }),
+      el('option', { value: 'idea', text: 'Idea' }),
+      el('option', { value: 'bug', text: 'Bug' })
+    ]);
+    var ed = editor('Tell us more. Paste links or code if it helps.', 8);
+    var go = el('button', { class: 'primary', type: 'submit', text: 'Post topic' });
+    var form = el('form', { class: 'write' }, [
+      el('a', { class: 'back', href: '#/', text: '← All topics' }),
+      el('h2', { text: 'New topic' }),
+      el('div', { class: 'row' }, [title, label]), ed.box, error, go
+    ]);
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      error.textContent = ''; go.disabled = true;
+      post('/api/topics', { title: title.value, label: label.value, body: ed.input.value }).then(function (d) {
+        location.hash = '#/topic/' + d.id;
+      }).catch(function (err) { error.textContent = err.message; go.disabled = false; });
+    };
+    show([form]);
+    title.focus();
+  }
+
   function route() {
     var m = location.hash.match(/^#\/topic\/(\d+)$/);
     if (m) renderTopic(m[1]);
+    else if (location.hash === '#/new') renderNew();
     else if (location.hash === '#/signin') renderSignIn();
     else renderList();
   }

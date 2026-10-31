@@ -24,7 +24,7 @@ phases:
         see: "Open it, press Sign in and type any email. Open the test mailbox link to see the code, type it in, and the board shows you're signed in."
       - id: T4
         title: "Start a topic and reply, with labels, links and code"
-        status: pending
+        status: done
         effort: 2
         depends_on: [T3]
         see: "Open it, sign in, press New topic, pick the label Bug, write a few lines with a link and some code, and post it. It shows on the board. Then reply to it."
