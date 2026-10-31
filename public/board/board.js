@@ -112,19 +112,112 @@
         el('div', { class: 'meta' }, [pill(t.label), pill(t.status), el('span', { text: 'by ' + t.author + ' · ' + when(t.created_at) })]),
         rich('post md', t.body_html)
       ];
+      if (me && me.is_owner) nodes.splice(3, 0, ownerBar(t, id));
       if (data.replies.length) {
         nodes.push(el('h3', { text: data.replies.length + (data.replies.length === 1 ? ' reply' : ' replies') }));
         data.replies.forEach(function (r) {
-          nodes.push(el('div', { class: 'post reply' }, [
+          var box = el('div', { class: 'post reply' }, [
             el('div', { class: 'meta', text: r.author + ' · ' + when(r.created_at) }),
             rich('md', r.body_html)
+          ]);
+          if (me && me.is_owner) box.appendChild(ownerActions([
+            ['Delete reply', function () { return adminPost('/api/admin/reply/' + r.id + '/state', { state: 'deleted' }).then(function () { renderTopic(id); }); }],
+            ['Flag ' + r.author, function () { return adminPost('/api/admin/users/' + r.author_id, { flagged: true }); }, 'Flagged: their next posts are held for you.']
           ]));
+          nodes.push(box);
         });
       }
       nodes.push(replyBox(id));
       show(nodes);
     }).catch(function () {
       show([el('a', { class: 'back', href: '#/', text: '← All topics' }), el('div', { class: 'empty', text: 'That topic could not be found.' })]);
+    });
+  }
+
+  // ---- The owner's tools --------------------------------------------------------
+  function adminPost(url, body) { return post(url, body); }
+
+  // A row of small buttons. Each is [label, action, messageAfter?].
+  function ownerActions(items) {
+    var note = el('span', { class: 'owner-note', role: 'status' });
+    var row = el('div', { class: 'owner-actions' }, items.map(function (it) {
+      var b = el('button', { type: 'button', class: 'small', text: it[0] });
+      b.onclick = function () {
+        b.disabled = true;
+        it[1]().then(function () { note.textContent = it[2] || 'Done.'; b.disabled = false; })
+          .catch(function (err) { note.textContent = err.message; b.disabled = false; });
+      };
+      return b;
+    }));
+    row.appendChild(note);
+    return row;
+  }
+
+  function ownerBar(t, id) {
+    var sel = el('select', { 'aria-label': 'Status' }, ['open', 'planned', 'fixed'].map(function (v) {
+      var o = el('option', { value: v, text: v.charAt(0).toUpperCase() + v.slice(1) });
+      if (t.status === v) o.selected = true;
+      return o;
+    }));
+    sel.onchange = function () {
+      adminPost('/api/admin/topic/' + id + '/status', { status: sel.value }).then(function () { renderTopic(id); });
+    };
+    var bar = el('div', { class: 'owner-bar' }, [el('span', { text: 'Owner:' }), sel]);
+    bar.appendChild(ownerActions([
+      ['Delete topic', function () { return adminPost('/api/admin/topic/' + id + '/state', { state: 'deleted' }).then(function () { location.hash = '#/'; }); }],
+      ['Flag ' + t.author, function () { return adminPost('/api/admin/users/' + t.author_id, { flagged: true }); }, 'Flagged: their next posts are held for you.']
+    ]));
+    return bar;
+  }
+
+  function renderOwnerRoom() {
+    if (!me || !me.is_owner) { location.hash = '#/'; return; }
+    getJson('/api/admin/overview').then(function (data) {
+      function postCard(p, buttons) {
+        var where = p.kind === 'topic' ? 'Topic: ' + p.title : 'Reply';
+        var card = el('div', { class: 'post' }, [
+          el('div', { class: 'meta', text: where + ' · by ' + p.author + ' · ' + when(p.created_at) }),
+          rich('md', p.body_html)
+        ]);
+        card.appendChild(ownerActions(buttons));
+        return card;
+      }
+      function decide(p, state, label) {
+        return [label, function () {
+          return adminPost('/api/admin/' + p.kind + '/' + p.id + '/state', { state: state }).then(renderOwnerRoom);
+        }];
+      }
+      var nodes = [el('a', { class: 'back', href: '#/', text: '← All topics' }), el('h2', { text: "Owner's room" })];
+
+      nodes.push(el('h3', { text: 'Waiting for you (' + data.held.length + ')' }));
+      nodes.push(el('p', { class: 'hint', text: 'Posts from people you flagged wait here until you let them through.' }));
+      if (!data.held.length) nodes.push(el('div', { class: 'empty small', text: 'Nothing is waiting.' }));
+      data.held.forEach(function (p) { nodes.push(postCard(p, [decide(p, 'visible', 'Let through'), decide(p, 'deleted', 'Delete')])); });
+
+      nodes.push(el('h3', { text: 'Recently deleted (' + data.deleted.length + ')' }));
+      if (!data.deleted.length) nodes.push(el('div', { class: 'empty small', text: 'Nothing deleted.' }));
+      data.deleted.forEach(function (p) { nodes.push(postCard(p, [decide(p, 'visible', 'Bring back')])); });
+
+      nodes.push(el('h3', { text: 'People (' + data.users.length + ')' }));
+      nodes.push(el('p', { class: 'hint', text: 'Flagged: their posts wait for you. Blocked: they cannot post at all. Only you can see email addresses.' }));
+      data.users.forEach(function (u) {
+        var row = el('div', { class: 'person' }, [
+          el('div', {}, [
+            el('b', { text: u.name }), el('span', { class: 'meta', text: ' ' + u.email + ' · ' + u.posts + (u.posts === 1 ? ' post' : ' posts') }),
+            u.flagged ? pill('flagged') : el('span'), u.blocked ? pill('blocked') : el('span'), u.is_owner ? pill('owner') : el('span')
+          ])
+        ]);
+        if (!u.is_owner) {
+          row.appendChild(ownerActions([
+            [u.flagged ? 'Unflag' : 'Flag', function () { return adminPost('/api/admin/users/' + u.id, { flagged: !u.flagged }).then(renderOwnerRoom); }],
+            [u.blocked ? 'Unblock' : 'Block', function () { return adminPost('/api/admin/users/' + u.id, { blocked: !u.blocked }).then(renderOwnerRoom); }]
+          ]));
+        }
+        nodes.push(row);
+      });
+      show(nodes);
+    }).catch(function () {
+      show([el('div', { class: 'empty', text: "The Owner's room could not be loaded." })]);
     });
   }
 
@@ -161,7 +254,10 @@
           setToken(null); me = null; renderAccount(); location.hash = '#/';
         });
       };
-      box.replaceChildren(el('span', { text: 'Signed in as ' + me.name }), out);
+      var parts = [];
+      if (me.is_owner) parts.push(el('a', { href: '#/owner', text: "Owner's room" }));
+      parts.push(el('span', { text: 'Signed in as ' + me.name }), out);
+      box.replaceChildren.apply(box, parts);
     } else {
       var btn = el('button', { type: 'button', text: 'Sign in' });
       btn.onclick = function () { location.hash = '#/signin'; };
@@ -229,6 +325,7 @@
   }
 
   // ---- Writing ----------------------------------------------------------------
+  var HELD_NOTE = 'Thanks! Your post is waiting for the owner to look at it before it shows on the board.';
   var HELP = 'You can use **bold**, `code`, links, and ``` on its own line for a block of code. Paste a screenshot to add it.';
 
   // A text box with a Preview button underneath. Returns { box, input }.
@@ -301,7 +398,8 @@
     form.onsubmit = function (e) {
       e.preventDefault();
       error.textContent = ''; go.disabled = true;
-      post('/api/topics/' + topicId + '/replies', { body: ed.input.value }).then(function () {
+      post('/api/topics/' + topicId + '/replies', { body: ed.input.value }).then(function (d) {
+        if (d.held) return show([el('a', { class: 'back', href: '#/', text: '← All topics' }), el('div', { class: 'empty', text: HELD_NOTE })]);
         renderTopic(topicId);
       }).catch(function (err) { error.textContent = err.message; go.disabled = false; });
     };
@@ -328,6 +426,7 @@
       e.preventDefault();
       error.textContent = ''; go.disabled = true;
       post('/api/topics', { title: title.value, label: label.value, body: ed.input.value }).then(function (d) {
+        if (d.held) return show([el('a', { class: 'back', href: '#/', text: '← All topics' }), el('div', { class: 'empty', text: HELD_NOTE })]);
         location.hash = '#/topic/' + d.id;
       }).catch(function (err) { error.textContent = err.message; go.disabled = false; });
     };
@@ -339,6 +438,7 @@
     var m = location.hash.match(/^#\/topic\/(\d+)$/);
     if (m) renderTopic(m[1]);
     else if (location.hash === '#/new') renderNew();
+    else if (location.hash === '#/owner') renderOwnerRoom();
     else if (location.hash === '#/signin') renderSignIn();
     else renderList();
   }

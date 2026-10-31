@@ -62,8 +62,18 @@ function openDb(file) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+  // Added later: older data files get the new columns too.
+  addColumn(db, 'users', 'flagged', 'INTEGER NOT NULL DEFAULT 0'); // owner marked this person as a problem
+  addColumn(db, 'users', 'blocked', 'INTEGER NOT NULL DEFAULT 0'); // this person may not post
+  addColumn(db, 'topics', 'state', "TEXT NOT NULL DEFAULT 'visible'"); // visible | held | deleted
+  addColumn(db, 'replies', 'state', "TEXT NOT NULL DEFAULT 'visible'");
   seedWelcome(db);
   return db;
+}
+
+function addColumn(db, table, column, definition) {
+  const has = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
+  if (!has) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }
 
 // A first topic so a new board is never empty.

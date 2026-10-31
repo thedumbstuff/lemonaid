@@ -1,7 +1,7 @@
 {
   "step": "build",
   "state": "done",
-  "said": "People can now upvote topics (one vote each, press again to take it back). The board puts the most wanted topics first, and can also sort by newest or show only bugs, ideas or questions, or only open, planned or fixed ones.",
-  "task": "T7",
-  "see": "Open it, upvote a topic, and switch the board to Most wanted: that topic moves to the top. Filter by Ideas to see only ideas."
+  "said": "The owner now has tools. They can mark a topic open, planned or fixed, delete topics and replies (and bring them back), and flag or block people. Posts from flagged people wait in an Owner's room until the owner lets them through.",
+  "task": "T8",
+  "see": "Open it and sign in with owner@lemonaid.local (the demo page shows it; the code is in the test mailbox). Topics now have an Owner bar to set a status, delete and flag. The Owner's room link at the top lists posts waiting for you, deleted posts, and people."
 }

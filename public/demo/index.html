@@ -31,9 +31,16 @@
     <div class="card">
       <h3>While you try it out</h3>
       <p>Sign-in codes are not sent to a real inbox yet. Find them in the <a href="/mailbox" target="_blank">test mailbox</a>.</p>
+      <p id="owner-hint" hidden>To try the owner's tools, sign in with <b id="owner-email"></b>. You will see extra buttons on topics and an Owner's room link.</p>
     </div>
   </div>
 <script>
+  fetch('/api/config').then(function (r) { return r.json(); }).then(function (c) {
+    if (c.demoOwnerEmail) {
+      document.getElementById('owner-email').textContent = c.demoOwnerEmail;
+      document.getElementById('owner-hint').hidden = false;
+    }
+  }).catch(function () {});
   var line = '<script src="' + location.origin + '/lemonaid.js"><\/script>';
   document.getElementById('line').textContent = line;
   document.getElementById('copy').onclick = function () {

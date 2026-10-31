@@ -49,7 +49,7 @@ phases:
         see: "Open it, upvote a topic, and switch the board to Most wanted: that topic moves to the top. Filter by Idea to see only ideas."
       - id: T8
         title: "Owner tools: set status, delete posts, flag and block people, Owner's room"
-        status: pending
+        status: done
         effort: 3
         depends_on: [T6, T7]
         see: "Open it and sign in with the owner email shown on the demo page. Topics now have buttons to set a status, delete and flag. The Owner's room lists posts the checks held back, plus people."

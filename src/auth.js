@@ -30,14 +30,15 @@ function userFromRequest(db, req) {
   return (
     db
       .prepare(
-        `SELECT u.id, u.email, u.name FROM sessions s JOIN users u ON u.id = s.user_id
+        `SELECT u.id, u.email, u.name, u.flagged, u.blocked FROM sessions s JOIN users u ON u.id = s.user_id
          WHERE s.token_hash = ?`
       )
       .get(sha(m[1])) || null
   );
 }
 
-function createAuth(db, mailer) {
+function createAuth(db, mailer, ownerEmail = '') {
+  const isOwner = (email) => !!ownerEmail && email === ownerEmail;
   const router = express.Router();
   const ipHits = new Map(); // ip -> times a code was asked for in the last hour
 
@@ -113,7 +114,7 @@ function createAuth(db, mailer) {
       user.id,
       Date.now()
     );
-    res.json({ token, user: { name: user.name } });
+    res.json({ token, user: { name: user.name, is_owner: isOwner(user.email) } });
   });
 
   router.post('/logout', (req, res) => {
@@ -125,7 +126,7 @@ function createAuth(db, mailer) {
   router.get('/me', (req, res) => {
     const user = userFromRequest(db, req);
     if (!user) return res.status(401).json({ error: 'Not signed in.' });
-    res.json({ user: { name: user.name } });
+    res.json({ user: { name: user.name, is_owner: isOwner(user.email) } });
   });
 
   return router;

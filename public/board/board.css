@@ -59,3 +59,14 @@ textarea { resize: vertical; }
 .vote.voted .arrow { color: #b58900; }
 .head { display: flex; align-items: center; gap: 12px; }
 .head h2 { margin: 0; }
+.owner-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #fff8dc; border: 1px solid #f3dd8d; border-radius: 8px; padding: 6px 10px; margin: 10px 0; font-size: .85rem; }
+.owner-bar select { width: auto; padding: 3px 6px; }
+.owner-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.owner-bar .owner-actions { margin-top: 0; }
+button.small { font-size: .8rem; padding: 3px 10px; }
+.owner-note { color: var(--muted); font-size: .8rem; }
+.hint { color: var(--muted); font-size: .85rem; margin: 4px 0 8px; }
+.empty.small { padding: 14px; font-size: .9rem; }
+.person { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.person .pill { margin-left: 6px; }
+.person .owner-actions { margin-top: 6px; }

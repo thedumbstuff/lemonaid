@@ -33,6 +33,7 @@ function createImages(db, dir) {
     (req, res) => {
       const user = userFromRequest(db, req);
       if (!user) return res.status(401).json({ error: 'Please sign in first.' });
+      if (user.blocked) return res.status(403).json({ error: 'Your account cannot post here.' });
       const buf = req.body;
       if (!Buffer.isBuffer(buf) || !buf.length) return res.status(400).json({ error: 'No picture received.' });
       const ext = sniffImage(buf);

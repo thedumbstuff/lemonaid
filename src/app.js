@@ -5,11 +5,13 @@ const { createApi } = require('./api');
 const { createAuth } = require('./auth');
 const { createMailer } = require('./mailer');
 const { createImages, serveImages } = require('./images');
+const { createAdmin } = require('./admin');
 
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 // options.dbFile: where to keep the data (default: data/lemonaid.db, or ':memory:' in checks).
+// options.ownerEmail: who runs this board (default: OWNER_EMAIL; in try-out mode owner@lemonaid.local).
 // options.testMailbox: show the test mailbox page (default: on, except in production).
 function createApp(options = {}) {
   const app = express();
@@ -17,6 +19,10 @@ function createApp(options = {}) {
   const dbFile = options.dbFile || path.join(__dirname, '..', 'data', 'lemonaid.db');
   const db = openDb(dbFile);
   const mailer = createMailer(db);
+  const tryOutMode = options.testMailbox ?? process.env.NODE_ENV !== 'production';
+  const configuredOwner = (options.ownerEmail || process.env.OWNER_EMAIL || '').trim().toLowerCase();
+  const usingDemoOwner = !configuredOwner && tryOutMode;
+  const ownerEmail = configuredOwner || (usingDemoOwner ? 'owner@lemonaid.local' : '');
   app.locals.db = db;
 
   const imagesDir = options.imagesDir || path.join(__dirname, '..', 'data', 'images');
@@ -25,12 +31,15 @@ function createApp(options = {}) {
   app.use('/uploads', serveImages(imagesDir));
 
   app.use(express.json({ limit: '100kb' }));
-  app.use('/api/auth', createAuth(db, mailer));
-  app.use('/api', createApi(db));
+  app.use('/api/auth', createAuth(db, mailer, ownerEmail));
+  app.use('/api/admin', createAdmin(db, ownerEmail));
+  // Only in try-out mode: tells the demo page which email to use to try the owner's tools.
+  app.get('/api/config', (req, res) => res.json({ demoOwnerEmail: usingDemoOwner ? ownerEmail : null }));
+  app.use('/api', createApi(db, ownerEmail));
 
   // The test mailbox: shows the emails Lemonaid "sent", so you can try sign-in without an
   // email account. Never shown in production.
-  const showMailbox = options.testMailbox ?? process.env.NODE_ENV !== 'production';
+  const showMailbox = tryOutMode;
   if (showMailbox) {
     app.get('/mailbox', (req, res) => {
       const mails = db.prepare('SELECT * FROM mailbox ORDER BY id DESC LIMIT 50').all();

@@ -7,7 +7,8 @@ const LABELS = ['bug', 'idea', 'question'];
 const MAX_TITLE = 120;
 const MAX_BODY = 10000;
 
-function createApi(db) {
+function createApi(db, ownerEmail = '') {
+  const isOwner = (user) => !!user && !!ownerEmail && user.email === ownerEmail;
   const api = express.Router();
 
   // Shows a post's text as safe HTML.
@@ -21,6 +22,17 @@ function createApi(db) {
     next();
   }
 
+  // Like needSignIn, but also refuses people the owner has blocked. Used for anything that writes.
+  function needCanWrite(req, res, next) {
+    needSignIn(req, res, () => {
+      if (req.user.blocked) return res.status(403).json({ error: 'Your account cannot post here.' });
+      next();
+    });
+  }
+
+  // People the owner has flagged have their posts held for the owner to look at first.
+  const stateFor = (user) => (user.flagged && !isOwner(user) ? 'held' : 'visible');
+
   // Checks the text of a post. Returns an error message, or null when fine.
   function bodyProblem(body) {
     if (typeof body !== 'string' || !body.trim()) return 'Please write something.';
@@ -33,7 +45,7 @@ function createApi(db) {
   // The board: sort=top (most wanted) or new; optional label= and status= filters.
   api.get('/topics', (req, res) => {
     const me = userFromRequest(db, req);
-    const where = [];
+    const where = ["t.state = 'visible'"];
     const args = [me ? me.id : 0];
     if (LABELS.includes(req.query.label)) { where.push('t.label = ?'); args.push(req.query.label); }
     if (STATUSES.includes(req.query.status)) { where.push('t.status = ?'); args.push(req.query.status); }
@@ -43,11 +55,11 @@ function createApi(db) {
     const topics = db
       .prepare(
         `SELECT t.id, t.title, t.label, t.status, t.created_at, u.name AS author,
-                (SELECT COUNT(*) FROM replies r WHERE r.topic_id = t.id) AS reply_count,
+                (SELECT COUNT(*) FROM replies r WHERE r.topic_id = t.id AND r.state = 'visible') AS reply_count,
                 (SELECT COUNT(*) FROM votes v WHERE v.topic_id = t.id) AS vote_count,
                 EXISTS (SELECT 1 FROM votes v WHERE v.topic_id = t.id AND v.user_id = ?) AS voted
          FROM topics t JOIN users u ON u.id = t.user_id
-         ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+         WHERE ${where.join(' AND ')}
          ORDER BY ${order}`
       )
       .all(...args)
@@ -56,9 +68,9 @@ function createApi(db) {
   });
 
   // Upvote a topic, or take your upvote back (one per person per topic).
-  api.post('/topics/:id/vote', needSignIn, (req, res) => {
+  api.post('/topics/:id/vote', needCanWrite, (req, res) => {
     const id = Number(req.params.id);
-    if (!db.prepare('SELECT id FROM topics WHERE id = ?').get(id)) return res.status(404).json({ error: 'No such topic.' });
+    if (!db.prepare("SELECT id FROM topics WHERE id = ? AND state = 'visible'").get(id)) return res.status(404).json({ error: 'No such topic.' });
     const had = db.prepare('DELETE FROM votes WHERE topic_id = ? AND user_id = ? RETURNING 1').get(id, req.user.id);
     if (!had) db.prepare('INSERT INTO votes (topic_id, user_id) VALUES (?, ?)').run(id, req.user.id);
     const count = db.prepare('SELECT COUNT(*) AS n FROM votes WHERE topic_id = ?').get(id).n;
@@ -70,25 +82,27 @@ function createApi(db) {
     const me = userFromRequest(db, req);
     const topic = db
       .prepare(
-        `SELECT t.id, t.title, t.body, t.label, t.status, t.created_at, u.name AS author
-         FROM topics t JOIN users u ON u.id = t.user_id WHERE t.id = ?`
+        `SELECT t.id, t.title, t.body, t.label, t.status, t.created_at, u.name AS author, u.id AS author_id
+         FROM topics t JOIN users u ON u.id = t.user_id WHERE t.id = ? AND t.state = 'visible'`
       )
       .get(id);
     if (!topic) return res.status(404).json({ error: 'No such topic.' });
     const replies = db
       .prepare(
-        `SELECT r.id, r.body, r.created_at, u.name AS author
+        `SELECT r.id, r.body, r.created_at, u.name AS author, u.id AS author_id
          FROM replies r JOIN users u ON u.id = r.user_id
-         WHERE r.topic_id = ? ORDER BY r.created_at, r.id`
+         WHERE r.topic_id = ? AND r.state = 'visible' ORDER BY r.created_at, r.id`
       )
       .all(id);
     topic.vote_count = db.prepare('SELECT COUNT(*) AS n FROM votes WHERE topic_id = ?').get(id).n;
     topic.voted = !!(me && db.prepare('SELECT 1 FROM votes WHERE topic_id = ? AND user_id = ?').get(id, me.id));
-    res.json({ topic: withHtml(topic), replies: replies.map(withHtml) });
+    // Who wrote a post is only for the owner's tools (to flag or block them).
+    const forMe = (row) => (isOwner(me) ? row : { ...row, author_id: undefined });
+    res.json({ topic: forMe(withHtml(topic)), replies: replies.map(withHtml).map(forMe) });
   });
 
   // Start a topic.
-  api.post('/topics', needSignIn, (req, res) => {
+  api.post('/topics', needCanWrite, (req, res) => {
     const { title, body, label } = req.body || {};
     const cleanTitle = typeof title === 'string' ? title.trim().replace(/\s+/g, ' ') : '';
     if (cleanTitle.length < 3) return res.status(400).json({ error: 'Please give your topic a title (at least 3 letters).' });
@@ -99,26 +113,28 @@ function createApi(db) {
     const verdict = checkText(cleanTitle, body);
     if (!verdict.ok) return res.status(422).json({ error: verdict.reason });
 
+    const state = stateFor(req.user);
     const row = db
-      .prepare('INSERT INTO topics (title, body, label, user_id) VALUES (?, ?, ?, ?) RETURNING id')
-      .get(cleanTitle, body.trim(), label, req.user.id);
-    res.status(201).json({ id: row.id });
+      .prepare('INSERT INTO topics (title, body, label, user_id, state) VALUES (?, ?, ?, ?, ?) RETURNING id')
+      .get(cleanTitle, body.trim(), label, req.user.id, state);
+    res.status(201).json({ id: row.id, held: state === 'held' });
   });
 
   // Reply to a topic.
-  api.post('/topics/:id/replies', needSignIn, (req, res) => {
+  api.post('/topics/:id/replies', needCanWrite, (req, res) => {
     const id = Number(req.params.id);
-    const topic = db.prepare('SELECT id FROM topics WHERE id = ?').get(id);
+    const topic = db.prepare("SELECT id FROM topics WHERE id = ? AND state = 'visible'").get(id);
     if (!topic) return res.status(404).json({ error: 'No such topic.' });
     const problem = bodyProblem((req.body || {}).body);
     if (problem) return res.status(400).json({ error: problem });
     const verdict = checkText(req.body.body);
     if (!verdict.ok) return res.status(422).json({ error: verdict.reason });
 
+    const state = stateFor(req.user);
     const row = db
-      .prepare('INSERT INTO replies (topic_id, body, user_id) VALUES (?, ?, ?) RETURNING id')
-      .get(id, req.body.body.trim(), req.user.id);
-    res.status(201).json({ id: row.id });
+      .prepare('INSERT INTO replies (topic_id, body, user_id, state) VALUES (?, ?, ?, ?) RETURNING id')
+      .get(id, req.body.body.trim(), req.user.id, state);
+    res.status(201).json({ id: row.id, held: state === 'held' });
   });
 
   // Shows how a piece of text will look once posted (the preview).
