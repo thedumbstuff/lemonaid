@@ -1,0 +1,20 @@
+:root { --accent: #e0a800; --ink: #1f2328; --muted: #6b7280; --line: #e5e7eb; --soft: #f9fafb; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: #fff; }
+a { color: inherit; }
+header { border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 16px; }
+.brand { font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+.empty { text-align: center; color: var(--muted); padding: 40px 12px; border: 1px dashed var(--line); border-radius: 8px; }
+.topic-row { display: block; text-decoration: none; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; }
+.topic-row:hover { border-color: var(--accent); background: var(--soft); }
+.topic-row .title { font-weight: 600; }
+.meta { color: var(--muted); font-size: .85rem; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.pill { font-size: .75rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--soft); text-transform: capitalize; }
+.pill.bug { border-color: #f5b5b5; background: #fdecec; }
+.pill.idea { border-color: #f3dd8d; background: #fff8dc; }
+.pill.question { border-color: #b9d2f5; background: #eaf2fe; }
+.back { display: inline-block; margin-bottom: 12px; color: var(--muted); font-size: .9rem; }
+h2 { margin: 0 0 6px; font-size: 1.3rem; }
+.post { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 12px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.reply { margin-left: 16px; background: var(--soft); }
+h3 { margin: 20px 0 0; font-size: 1rem; color: var(--muted); }

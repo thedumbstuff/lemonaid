@@ -6,8 +6,8 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "start": "node src/index.js",
-    "test": "node --test"
+    "start": "node --no-warnings src/index.js",
+    "test": "node --no-warnings --test"
   },
   "engines": {
     "node": ">=22"

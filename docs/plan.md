@@ -51,7 +51,7 @@ Everything people post is public, as you asked. Email addresses stay private.
 ## Tools we use
 - Node.js: already on this computer, and almost every server can run it.
 - Express: the most common, simplest way to make a small web server in Node.js.
-- SQLite (via better-sqlite3): keeps all the data in one file, so there's no database
+- SQLite (built into Node.js): keeps all the data in one file, so there is no database
   server to set up. Owners just copy one folder to back it up.
 - Plain HTML, CSS and JavaScript for the screens: no build step, small and fast to load
   inside other sites.

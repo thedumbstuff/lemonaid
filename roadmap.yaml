@@ -12,7 +12,7 @@ phases:
         see: "Open it: a pretend product website shows an empty board that says Lemonaid, with the one line to copy underneath."
       - id: T2
         title: "The board and topic pages, with a welcome topic to read"
-        status: pending
+        status: done
         effort: 2
         depends_on: [T1]
         see: "Open it: the board lists a welcome topic. Click it to read it and its reply."
