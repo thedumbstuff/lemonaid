@@ -1,0 +1,62 @@
+{
+  "findings": [
+    { "level": "must", "plain": "If someone forgot to switch off try-out mode online, anyone on the internet could open the test mailbox, read the owner's sign-in code and take over the board. Now the test mailbox only opens for someone at the same computer, and closes as soon as a real email service is set up.", "fixed": true },
+    { "level": "should", "plain": "In try-out mode, a broken request showed an error page with the program's insides (file paths on this computer). Errors are now a short plain message.", "fixed": true },
+    { "level": "should", "plain": "The board pages had no extra browser lock against harmful code. They now tell the browser to run only the board's own code, so even a slipped-through trick in a post could not run.", "fixed": true },
+    { "level": "should", "plain": "There is no limit on how many posts, replies or votes one signed-in person can make per hour. A spammer could flood the board until you block them in the Owner's room. Worth adding later with Change something.", "fixed": false },
+    { "level": "should", "plain": "Sign-ins never expire. Sign out ends it on that device, and blocking a person stops their posting, but there is no automatic time-out yet.", "fixed": false },
+    { "level": "should", "plain": "Pasted pictures stay on the server even when a post is deleted, and many accounts together could slowly fill the disk. Keep an eye on the data folder size.", "fixed": false }
+  ],
+  "ok": [
+    "No passwords, keys or tokens in the code or anywhere in its history (the checks use an obviously fake key, sk-ant-test).",
+    ".env is listed in .gitignore, so settings with secrets are never committed. The data folder (database and pictures) is ignored too.",
+    "There are no passwords at all. Sign-in codes and sign-ins are stored only as scrambled fingerprints, codes last 10 minutes and stop after 5 wrong tries.",
+    "The Owner's room and all owner actions need the owner's sign-in. Email addresses are only shown to the owner.",
+    "Everything people type goes into the database safely (no raw text in queries) and is shown as safe text: HTML and javascript: links are made harmless.",
+    "Pictures are checked by what they really are (no SVG), and only Lemonaid's own pictures can show in posts.",
+    "The package check (npm audit) finds 0 known security problems.",
+    "All 88 automatic checks pass."
+  ],
+  "where": [
+    {
+      "name": "Render (runs it for you, about $7.25 a month)",
+      "why": "Lemonaid has a server and keeps data, so it needs a host that runs Node.js and keeps a disk. Render does that and everything is set up on its website, nothing to type in a terminal. Its free plan has no lasting disk, so it needs the Starter plan plus a 1 GB disk.",
+      "steps": [
+        "First put the code in a GitHub repository (see 'Share the code' below), or keep it private there if you prefer.",
+        "Make an account at render.com and connect it to your GitHub account.",
+        "Press New, then Web Service, and pick the Lemonaid repository.",
+        "Set Build command to: npm install. Set Start command to: npm start. Pick the Starter plan.",
+        "Under Disks, add a disk with mount path /var/data and size 1 GB.",
+        "Make an account at brevo.com (free), add and verify your email domain, and open SMTP & API to get your SMTP login and key.",
+        "In Render, under Environment, add: NODE_ENV = production, OWNER_EMAIL = your email, PUBLIC_URL = your Render address (like https://lemonaid-xxxx.onrender.com), SMTP_URL = smtp://YOUR-LOGIN:YOUR-KEY@smtp-relay.brevo.com:587, MAIL_FROM = Lemonaid <hello@yourdomain.com>, DATA_DIR = /var/data, TRUST_PROXY = 1.",
+        "Optional: add ANTHROPIC_API_KEY (from console.anthropic.com) for the AI check.",
+        "Press Deploy. When it is live, open the address, sign in with your owner email, and copy the one line from the demo page into your website.",
+        "Optional: under Settings, add your own address like board.yourdomain.com and update PUBLIC_URL to match."
+      ]
+    },
+    {
+      "name": "A small server of your own (about $5 a month, or one you already have)",
+      "why": "Cheapest and fully yours, and it can sit next to your other sites. It needs typing commands in a terminal to set up, so pick this if you or a helper are comfortable with that.",
+      "steps": [
+        "Rent a small Linux server (for example at hetzner.com or digitalocean.com), or use the one you already run your sites on.",
+        "Install Node.js 22.13 or newer and git on it.",
+        "Copy the project there, run npm install, and copy .env.example to .env and fill it in (the README explains each line).",
+        "Keep it running with a service manager (for example pm2 or systemd) using npm start.",
+        "Put it behind your web server (Caddy, nginx or Traefik) with HTTPS on an address like board.yourdomain.com, and set TRUST_PROXY=1.",
+        "Back up the data folder regularly."
+      ]
+    },
+    {
+      "name": "Share the code as open source (GitHub, free)",
+      "why": "This is how others get Lemonaid to run their own copy. Everything is done on the website, and the README already explains setup and the licence is MIT.",
+      "steps": [
+        "Make an account at github.com if you do not have one.",
+        "Press New repository, name it lemonaid, choose Public, and do not add a README or licence (the project has them).",
+        "Use GitHub Desktop (desktop.github.com) to add this project folder and Publish it to that repository.",
+        "Check on GitHub that only the project files are there: no .env file, no data folder, no .claude folder and no 'Open lemonaid.bat'. (They are not committed now; keep it that way.)",
+        "Add a short description and topics like feedback, forum, issues, embed."
+      ]
+    }
+  ],
+  "said": "Fixed 1 must and 2 smaller safety problems. 3 things to know (no posting limits yet, sign-ins never expire, pictures can pile up). Ready to put online."
+}

@@ -78,8 +78,9 @@ read from the environment, or from a file called `.env` next to `package.json` (
 | `ANTHROPIC_API_KEY` | Allows the optional AI check (see below). | No |
 | `AI_MODEL` | Which Claude model the AI check uses (default `claude-opus-5-5`). | No |
 
-**Important:** if you forget `NODE_ENV=production`, anyone can open the test mailbox, read the
-owner's sign-in code and become the owner. Lemonaid prints a reminder when it starts in try-out mode.
+**Important:** always set `NODE_ENV=production` online. As a safety net, the test mailbox only ever
+opens for someone at the same computer (never through a proxy) and closes once `SMTP_URL` is set,
+but try-out mode is still not meant for the internet. Lemonaid prints a reminder when it starts in it.
 
 **Email.** Any email service that gives you an SMTP address works. Brevo and Resend both have free
 plans of a few hundred emails a day. Without one in production, requesting a sign-in code fails

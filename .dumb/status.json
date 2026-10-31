@@ -1,6 +1,5 @@
 {
-  "step": "fix",
+  "step": "ship",
   "state": "done",
-  "said": "This was not a fault: the AI check cannot be tried without an Anthropic key, and only you can get one. I added 4 checks that run the AI check through the real Anthropic library against a pretend Anthropic on this computer. They prove what gets sent, that a 'hold' answer is read, and that errors never block posts. They cannot prove Anthropic accepts the request, so the first real post is still the real test.",
-  "see": "To try it for real: get a key at console.anthropic.com, put the line ANTHROPIC_API_KEY=your-key in a file called .env in the project folder (it is never committed), restart Lemonaid, then open the Owner's room and press Switch on. Post something nasty without swear words and it waits there with a reason."
+  "said": "Fixed 1 must and 2 smaller safety problems. 3 things to know (no posting limits yet, sign-ins never expire, pictures can pile up). Ready to put online."
 }
