@@ -1,7 +1,7 @@
 {
   "step": "build",
   "state": "done",
-  "said": "Signed-in people can now start a topic (picking Bug, Idea or Question) and reply to others. Posts can have bold text, links and code, with a Preview button, and nobody can sneak harmful code into a post.",
-  "task": "T4",
-  "see": "Open it, sign in, press New topic, pick the label Bug, write a few lines with a link and some code, and post it. It shows on the board. Then open it and write a reply."
+  "said": "Signed-in people can now paste a screenshot straight into a topic or reply. It is saved on this computer and shows in the post. Only real pictures up to 5 MB are accepted.",
+  "task": "T5",
+  "see": "Copy a screenshot, open it, sign in, start a topic and paste it into the text box. The picture shows in the preview and in the posted topic."
 }

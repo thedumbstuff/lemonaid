@@ -45,3 +45,5 @@ textarea { resize: vertical; }
 .help { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; color: var(--muted); font-size: .8rem; }
 .help .link { font-size: .8rem; }
 [hidden] { display: none !important; }
+.md img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+.upload-status.error { min-height: 0; }

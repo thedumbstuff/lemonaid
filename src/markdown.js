@@ -13,8 +13,15 @@ md.renderer.rules.link_open = (tokens, i, opts, env, self) => {
   return defaultLink(tokens, i, opts, env, self);
 };
 
-// Pictures come in a later task; for now an image is shown as its link.
-md.disable('image');
+// Pictures: only ones saved by Lemonaid itself (/uploads/<name>) are shown. Any other
+// picture address is shown as plain text, so nobody can load outside images or trackers.
+const OWN_IMAGE = /^\/uploads\/[a-f0-9]{32}\.(png|jpg|gif|webp)$/;
+md.renderer.rules.image = (tokens, i) => {
+  const src = tokens[i].attrGet('src') || '';
+  const alt = md.utils.escapeHtml(tokens[i].content || 'picture');
+  if (!OWN_IMAGE.test(src)) return alt;
+  return `<img src="${src}" alt="${alt}" loading="lazy">`;
+};
 
 function renderMarkdown(text) {
   return md.render(String(text));

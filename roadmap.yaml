@@ -30,7 +30,7 @@ phases:
         see: "Open it, sign in, press New topic, pick the label Bug, write a few lines with a link and some code, and post it. It shows on the board. Then reply to it."
       - id: T5
         title: "Paste screenshots into topics and replies"
-        status: pending
+        status: done
         effort: 2
         depends_on: [T4]
         see: "Copy a screenshot, open it, start a topic and paste it into the text box. The picture shows in the preview and in the posted topic."

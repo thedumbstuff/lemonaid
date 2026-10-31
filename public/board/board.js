@@ -184,7 +184,7 @@
   }
 
   // ---- Writing ----------------------------------------------------------------
-  var HELP = 'You can use **bold**, `code`, links, and ``` on its own line to start and end a block of code.';
+  var HELP = 'You can use **bold**, `code`, links, and ``` on its own line for a block of code. Paste a screenshot to add it.';
 
   // A text box with a Preview button underneath. Returns { box, input }.
   function editor(placeholder, rows) {
@@ -200,7 +200,46 @@
         preview.hidden = false; input.hidden = true; toggle.textContent = 'Back to editing';
       }).catch(function () { showing = false; });
     };
-    var box = el('div', { class: 'editor' }, [input, preview, el('div', { class: 'help' }, [toggle, el('span', { text: HELP })])]);
+    var status = el('span', { class: 'upload-status', role: 'status' });
+
+    // Pasting a picture (like a screenshot) saves it and puts it into the text.
+    input.addEventListener('paste', function (e) {
+      var items = (e.clipboardData && e.clipboardData.items) || [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file' && /^image\//.test(items[i].type)) {
+          var file = items[i].getAsFile();
+          if (!file) continue;
+          e.preventDefault();
+          uploadPicture(file);
+          return;
+        }
+      }
+    });
+    function uploadPicture(file) {
+      status.textContent = 'Adding your picture…';
+      status.className = 'upload-status';
+      fetch('/api/images', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + getToken(), 'Content-Type': file.type || 'application/octet-stream' },
+        body: file
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (!r.ok) throw new Error(d.error || 'The picture could not be added.');
+          return d;
+        });
+      }).then(function (d) {
+        var text = '![screenshot](' + d.url + ')';
+        var start = input.selectionStart, end = input.selectionEnd;
+        input.value = input.value.slice(0, start) + text + input.value.slice(end);
+        input.selectionStart = input.selectionEnd = start + text.length;
+        status.textContent = 'Picture added.';
+      }).catch(function (err) {
+        status.textContent = err.message;
+        status.className = 'upload-status error';
+      });
+    }
+
+    var box = el('div', { class: 'editor' }, [input, preview, el('div', { class: 'help' }, [toggle, el('span', { text: HELP }), status])]);
     return { box: box, input: input };
   }
 

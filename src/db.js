@@ -42,6 +42,13 @@ function openDb(file) {
       user_id INTEGER NOT NULL REFERENCES users(id),
       created_at INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS images (
+      id INTEGER PRIMARY KEY,
+      filename TEXT UNIQUE NOT NULL,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      bytes INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
     CREATE TABLE IF NOT EXISTS mailbox (
       id INTEGER PRIMARY KEY,
       to_email TEXT NOT NULL,

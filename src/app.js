@@ -4,6 +4,7 @@ const { openDb } = require('./db');
 const { createApi } = require('./api');
 const { createAuth } = require('./auth');
 const { createMailer } = require('./mailer');
+const { createImages, serveImages } = require('./images');
 
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -17,6 +18,11 @@ function createApp(options = {}) {
   const db = openDb(dbFile);
   const mailer = createMailer(db);
   app.locals.db = db;
+
+  const imagesDir = options.imagesDir || path.join(__dirname, '..', 'data', 'images');
+  // Pictures are read before the general JSON reader, which would not understand them.
+  app.use('/api/images', createImages(db, imagesDir));
+  app.use('/uploads', serveImages(imagesDir));
 
   app.use(express.json({ limit: '100kb' }));
   app.use('/api/auth', createAuth(db, mailer));
