@@ -10,3 +10,9 @@ if (process.env.NODE_ENV !== 'production') {
       'Before putting Lemonaid online, set NODE_ENV=production and OWNER_EMAIL=you@yourdomain.'
   );
 }
+if (process.env.NODE_ENV === 'production') {
+  const missing = ['OWNER_EMAIL', 'PUBLIC_URL', 'SMTP_URL'].filter((name) => !process.env[name]);
+  if (missing.length) {
+    console.warn(`Warning: ${missing.join(', ')} not set. See README.md ("Put it online for real").`);
+  }
+}

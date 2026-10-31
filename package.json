@@ -6,11 +6,11 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "start": "node --no-warnings src/index.js",
+    "start": "node --no-warnings --env-file-if-exists=.env src/index.js",
     "test": "node --no-warnings --test"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

@@ -12,16 +12,27 @@ const { createAiCheck } = require('./ai');
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
+// options.dataDir: the folder for the database and pictures (default: DATA_DIR, or ./data).
+// options.accent: the board's main colour as a hex code (default: ACCENT_COLOR).
 // options.dbFile: where to keep the data (default: data/lemonaid.db, or ':memory:' in checks).
 // options.ownerEmail: who runs this board (default: OWNER_EMAIL; in try-out mode owner@lemonaid.local).
 // options.publicUrl: the web address of this board, used in emails (default: PUBLIC_URL, or http://localhost:3000).
 // options.smtpUrl, options.mailFrom, options.mailTransport: how to send real email (see mailer.js).
 // options.aiClient: a ready-made Anthropic client (for the checks); otherwise ANTHROPIC_API_KEY is used.
 // options.testMailbox: show the test mailbox page (default: on, except in production).
+// "#e0a800", "e0a800" or "#0a8" -> "e0a800" / "00aa88"; anything else -> null.
+function hexColour(value) {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || '').trim());
+  if (!m) return null;
+  const h = m[1].toLowerCase();
+  return h.length === 3 ? h.replace(/./g, (c) => c + c) : h;
+}
+
 function createApp(options = {}) {
   const app = express();
   const pub = path.join(__dirname, '..', 'public');
-  const dbFile = options.dbFile || path.join(__dirname, '..', 'data', 'lemonaid.db');
+  const dataDir = options.dataDir || process.env.DATA_DIR || path.join(__dirname, '..', 'data');
+  const dbFile = options.dbFile || path.join(dataDir, 'lemonaid.db');
   const db = openDb(dbFile);
   const tryOutMode = options.testMailbox ?? process.env.NODE_ENV !== 'production';
   const mailer = createMailer(db, { smtpUrl: options.smtpUrl, mailFrom: options.mailFrom, transport: options.mailTransport, tryOutMode });
@@ -33,7 +44,17 @@ function createApp(options = {}) {
   const ownerEmail = configuredOwner || (usingDemoOwner ? 'owner@lemonaid.local' : '');
   app.locals.db = db;
 
-  const imagesDir = options.imagesDir || path.join(__dirname, '..', 'data', 'images');
+  // Behind a reverse proxy (nginx, Caddy, Traefik...) set TRUST_PROXY=1 so the limits on
+  // sign-in codes count each visitor's own address, not the proxy's.
+  const proxy = options.trustProxy ?? process.env.TRUST_PROXY;
+  if (proxy) app.set('trust proxy', /^\d+$/.test(String(proxy)) ? Number(proxy) : proxy);
+  app.disable('x-powered-by');
+  app.use((req, res, next) => {
+    res.set('X-Content-Type-Options', 'nosniff');
+    next();
+  });
+
+  const imagesDir = options.imagesDir || path.join(dataDir, 'images');
   // Pictures are read before the general JSON reader, which would not understand them.
   app.use('/api/images', createImages(db, imagesDir));
   app.use('/uploads', serveImages(imagesDir));
@@ -43,7 +64,8 @@ function createApp(options = {}) {
   app.use('/api/auth', createAuth(db, mailer, ownerEmail));
   app.use('/api/admin', createAdmin(db, ownerEmail, notifier, ai));
   // Only in try-out mode: tells the demo page which email to use to try the owner's tools.
-  app.get('/api/config', (req, res) => res.json({ demoOwnerEmail: usingDemoOwner ? ownerEmail : null }));
+  const accent = hexColour(options.accent ?? process.env.ACCENT_COLOR);
+  app.get('/api/config', (req, res) => res.json({ demoOwnerEmail: usingDemoOwner ? ownerEmail : null, accent }));
   app.use('/api', createApi(db, ownerEmail, notifier, ai));
 
   // The test mailbox: shows the emails Lemonaid "sent", so you can try sign-in without an

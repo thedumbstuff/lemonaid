@@ -1,6 +1,32 @@
 (function () {
   var app = document.getElementById('app');
 
+  // ---- Colour and size inside the owner's page ------------------------------------
+  // The main colour comes from the embed line (?color=...) or the owner's ACCENT_COLOR.
+  function setAccent(hex) {
+    if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex || '')) return;
+    if (hex.length === 3) hex = hex.replace(/./g, function (c) { return c + c; });
+    var r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+    // Dark text on light colours, white text on dark ones, so buttons stay readable.
+    var light = (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6;
+    var root = document.documentElement.style;
+    root.setProperty('--accent', '#' + hex.toLowerCase());
+    root.setProperty('--on-accent', light ? '#1f2328' : '#ffffff');
+  }
+  var fromLink = /[?&]color=([0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?:&|$)/.exec(location.search);
+  if (fromLink) setAccent(fromLink[1]);
+  else fetch('/api/config').then(function (r) { return r.json(); }).then(function (c) { if (c.accent) setAccent(c.accent); }).catch(function () {});
+
+  // Tell the page around us how tall we are (see public/lemonaid.js).
+  if (window.parent !== window && window.ResizeObserver) {
+    var lastHeight = 0;
+    new ResizeObserver(function () {
+      var h = document.documentElement.scrollHeight;
+      if (h !== lastHeight) { lastHeight = h; window.parent.postMessage({ lemonaid: 'height', height: h }, '*'); }
+    }).observe(document.body);
+  }
+
+
   // Builds an element. Text is always set as text (never as HTML), so posts can't inject code.
   function el(tag, attrs, children) {
     var node = document.createElement(tag);

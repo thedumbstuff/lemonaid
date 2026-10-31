@@ -27,6 +27,9 @@
       <p>Put this one line where you want the board to appear:</p>
       <pre id="line"></pre>
       <button id="copy" type="button">Copy the line</button>
+      <p style="margin-top:16px">Match the board to your site's colour (optional):
+        <input id="color" type="color" value="#e0a800" aria-label="Board colour">
+        <button id="reset-color" type="button">Reset</button></p>
     </div>
     <div class="card">
       <h3>While you try it out</h3>
@@ -41,12 +44,27 @@
       document.getElementById('owner-hint').hidden = false;
     }
   }).catch(function () {});
-  var line = '<script src="' + location.origin + '/lemonaid.js"><\/script>';
-  document.getElementById('line').textContent = line;
+  var DEFAULT_COLOR = '#e0a800';
+  var line;
+  function showLine(color) {
+    var attr = color && color !== DEFAULT_COLOR ? ' data-color="' + color + '"' : '';
+    line = '<script src="' + location.origin + '/lemonaid.js"' + attr + '><\/script>';
+    document.getElementById('line').textContent = line;
+  }
+  showLine();
   document.getElementById('copy').onclick = function () {
     if (navigator.clipboard) navigator.clipboard.writeText(line);
     this.textContent = 'Copied!';
   };
+  // Trying a colour reloads the board with it, exactly as the line would.
+  function tryColor(color) {
+    var frame = document.querySelector('#lemonaid-here iframe');
+    if (frame) frame.src = '/board/' + (color !== DEFAULT_COLOR ? '?color=' + color.replace('#', '') : '');
+    showLine(color);
+  }
+  var picker = document.getElementById('color');
+  picker.oninput = function () { tryColor(picker.value); };
+  document.getElementById('reset-color').onclick = function () { picker.value = DEFAULT_COLOR; tryColor(DEFAULT_COLOR); };
 </script>
 </body>
 </html>
