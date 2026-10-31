@@ -70,9 +70,18 @@ function createApp(options = {}) {
 
   // The test mailbox: shows the emails Lemonaid "sent", so you can try sign-in without an
   // email account. Never shown in production.
-  const showMailbox = tryOutMode;
+  // Extra safety in case someone forgets NODE_ENV=production: the test mailbox (which shows
+  // sign-in codes, including the demo owner's) only opens for someone sitting at this
+  // computer, never through a proxy or from the internet.
+  const fromThisComputer = (req) => {
+    const ip = req.socket.remoteAddress || '';
+    const local = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+    return local && !req.get('x-forwarded-for') && !req.get('forwarded') && !req.get('x-real-ip');
+  };
+  const showMailbox = tryOutMode && mailer.mode === 'test-mailbox';
   if (showMailbox) {
-    app.get('/mailbox', (req, res) => {
+    app.get('/mailbox', (req, res, next) => {
+      if (!fromThisComputer(req)) return next();
       const mails = db.prepare('SELECT * FROM mailbox ORDER BY id DESC LIMIT 50').all();
       const items = mails
         .map(
@@ -93,10 +102,33 @@ ${items || '<p>No emails yet.</p>'}</body></html>`);
   // The demo website (what an owner's own site would look like).
   app.use('/', express.static(path.join(pub, 'demo')));
   // The board itself, shown inside a frame on the owner's site.
+  // The board only runs its own files: even if harmful code slipped into a post, the
+  // browser would refuse to run it. Any site may show the board in a frame (that is the point).
+  app.use('/board', (req, res, next) => {
+    res.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; " +
+        "object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors *"
+    );
+    next();
+  });
   app.use('/board', express.static(path.join(pub, 'board')));
   // The one line an owner adds to their site: /lemonaid.js
   app.get('/lemonaid.js', (req, res) => {
     res.type('application/javascript').sendFile(path.join(pub, 'lemonaid.js'));
+  });
+  // Unknown addresses and errors: a short plain answer, never the program's insides.
+  app.use('/api', (req, res) => res.status(404).json({ error: 'Not found.' }));
+  app.use((err, req, res, next) => {
+    const status = err.status || err.statusCode || 500;
+    if (status >= 500) console.error(err);
+    const message =
+      err.type === 'entity.too.large' ? 'That is too big to send.'
+      : err.type === 'entity.parse.failed' ? 'That request could not be read.'
+      : status < 500 ? 'That request could not be handled.'
+      : 'Something went wrong on our side. Please try again.';
+    if (res.headersSent) return next(err);
+    res.status(status).json({ error: message });
   });
   return app;
 }

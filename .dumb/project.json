@@ -4,11 +4,12 @@
   "created": "2026-10-31T06:09:14Z",
   "approved": {
     "idea": 1793428127875,
-    "plan": 1793429879681
+    "plan": 1793429879681,
+    "check": 1793434964693
   },
   "last": {
-    "step": "fix",
-    "text": "Rude posts stopped, owner can delete and flag, optional AI check: The bad-word check, deleting and flagging all worked. The AI check could not be tried: it shows OFF because there is no Anthropic key here. To try it, add a key (see the README), then switch it on in the Owner's room."
+    "step": "ship",
+    "text": ""
   },
   "autoBuild": false
 }
