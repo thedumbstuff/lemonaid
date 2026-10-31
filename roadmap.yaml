@@ -1,0 +1,72 @@
+project: "Lemonaid"
+tagline: "A public discussion and issues board any website can add with one line"
+phases:
+  - id: P1
+    name: "First version"
+    tasks:
+      - id: T1
+        title: "The skeleton: a demo website with an empty Lemonaid board placed on it by one line"
+        status: done
+        effort: 1
+        depends_on: []
+        see: "Open it: a pretend product website shows an empty board that says Lemonaid, with the one line to copy underneath."
+      - id: T2
+        title: "The board and topic pages, with a welcome topic to read"
+        status: pending
+        effort: 2
+        depends_on: [T1]
+        see: "Open it: the board lists a welcome topic. Click it to read it and its reply."
+      - id: T3
+        title: "Sign in with your email and a 6-digit code (test mailbox shows the code)"
+        status: pending
+        effort: 2
+        depends_on: [T2]
+        see: "Open it, press Sign in and type any email. Open the test mailbox link to see the code, type it in, and the board shows you're signed in."
+      - id: T4
+        title: "Start a topic and reply, with labels, links and code"
+        status: pending
+        effort: 2
+        depends_on: [T3]
+        see: "Open it, sign in, press New topic, pick the label Bug, write a few lines with a link and some code, and post it. It shows on the board. Then reply to it."
+      - id: T5
+        title: "Paste screenshots into topics and replies"
+        status: pending
+        effort: 2
+        depends_on: [T4]
+        see: "Copy a screenshot, open it, start a topic and paste it into the text box. The picture shows in the preview and in the posted topic."
+      - id: T6
+        title: "The built-in bad-word check stops rude posts"
+        status: pending
+        effort: 1
+        depends_on: [T4]
+        see: "Open it and try to post a topic with a swear word in it. It isn't posted, and a friendly note says why."
+      - id: T7
+        title: "Upvotes, sorting by most wanted, and filters by label and status"
+        status: pending
+        effort: 1
+        depends_on: [T4]
+        see: "Open it, upvote a topic, and switch the board to Most wanted: that topic moves to the top. Filter by Idea to see only ideas."
+      - id: T8
+        title: "The owner's tools: set status, delete posts, flag and block people, and the Owner's room"
+        status: pending
+        effort: 3
+        depends_on: [T6, T7]
+        see: "Open it and sign in with the owner email shown on the demo page. Topics now have buttons to set a status, delete and flag. The Owner's room lists posts the checks held back, plus people."
+      - id: T9
+        title: "Reply emails, with a way to turn them off, and real email sending when set up"
+        status: pending
+        effort: 2
+        depends_on: [T4]
+        see: "Open it, reply to someone else's topic, and open the test mailbox: the topic's author got a reply email with a link back and an unsubscribe link."
+      - id: T10
+        title: "The optional AI check the owner can switch on"
+        status: pending
+        effort: 2
+        depends_on: [T8]
+        see: "Open the Owner's room: the AI check shows as off until a key is added. With it on, a nasty post with no swear words gets held back for the owner."
+      - id: T11
+        title: "Owner's colour, works well on phones, and the setup guide for the open-source release"
+        status: pending
+        effort: 2
+        depends_on: [T8, T9]
+        see: "Open it: the demo page lets you try a colour and the board changes to match. Make the window narrow like a phone and it still reads well. The project has a clear setup guide and an MIT licence."

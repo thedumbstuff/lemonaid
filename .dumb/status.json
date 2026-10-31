@@ -1,0 +1,7 @@
+{
+  "step": "build",
+  "state": "done",
+  "said": "The base of Lemonaid is in place: a pretend product website with an empty Lemonaid board placed on it by a single line, and that line ready to copy. The automatic checks pass.",
+  "task": "T1",
+  "see": "Open it: a pretend product website called Acme Widgets shows an empty board that says Lemonaid, with the one line to copy underneath."
+}

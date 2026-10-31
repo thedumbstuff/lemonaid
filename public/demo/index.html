@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acme Widgets – Lemonaid demo</title>
+<style>
+  body { margin: 0; font: 16px/1.6 system-ui, sans-serif; color: #1f2328; background: #f8f9fb; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px 48px; }
+  nav { background: #1f2937; color: #fff; padding: 14px 16px; }
+  nav b { font-size: 1.1rem; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-top: 20px; }
+  pre { background: #111827; color: #f9fafb; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
+  button { font: inherit; padding: 6px 14px; border: 1px solid #d1d5db; background: #fff; border-radius: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <nav><div class="wrap"><b>Acme Widgets</b> &nbsp;·&nbsp; a pretend product website</div></nav>
+  <div class="wrap">
+    <div class="card">
+      <h2>Talk to us and to each other</h2>
+      <p>Ask a question, share an idea or report a problem below. Everyone can read it.</p>
+      <div id="lemonaid-here"><script src="/lemonaid.js"></script></div>
+    </div>
+    <div class="card">
+      <h3>Add it to your own site</h3>
+      <p>Put this one line where you want the board to appear:</p>
+      <pre id="line"></pre>
+      <button id="copy" type="button">Copy the line</button>
+    </div>
+  </div>
+<script>
+  var line = '<script src="' + location.origin + '/lemonaid.js"><\/script>';
+  document.getElementById('line').textContent = line;
+  document.getElementById('copy').onclick = function () {
+    if (navigator.clipboard) navigator.clipboard.writeText(line);
+    this.textContent = 'Copied!';
+  };
+</script>
+</body>
+</html>
