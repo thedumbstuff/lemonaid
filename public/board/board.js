@@ -69,10 +69,112 @@
     });
   }
 
+  // ---- Signing in -------------------------------------------------------------
+  // The board lives in a frame on other people's sites, so the sign-in token is kept in
+  // the browser's storage and sent along with each request (not in a cookie).
+  var memoryToken = null;
+  function getToken() {
+    try { return localStorage.getItem('lemonaid-token') || memoryToken; } catch (e) { return memoryToken; }
+  }
+  function setToken(t) {
+    memoryToken = t;
+    try { if (t) localStorage.setItem('lemonaid-token', t); else localStorage.removeItem('lemonaid-token'); } catch (e) {}
+  }
+  var me = null; // { name } when signed in
+
+  function post(url, body) {
+    var headers = { 'Content-Type': 'application/json' };
+    if (getToken()) headers.Authorization = 'Bearer ' + getToken();
+    return fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body || {}) }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) {
+        if (!r.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+        return data;
+      });
+    });
+  }
+
+  function renderAccount() {
+    var box = document.getElementById('account');
+    if (me) {
+      var out = el('button', { class: 'link', type: 'button', text: 'Sign out' });
+      out.onclick = function () {
+        post('/api/auth/logout').catch(function () {}).then(function () {
+          setToken(null); me = null; renderAccount(); location.hash = '#/';
+        });
+      };
+      box.replaceChildren(el('span', { text: 'Signed in as ' + me.name }), out);
+    } else {
+      var btn = el('button', { type: 'button', text: 'Sign in' });
+      btn.onclick = function () { location.hash = '#/signin'; };
+      box.replaceChildren(btn);
+    }
+  }
+
+  function loadMe() {
+    var token = getToken();
+    if (!token) { me = null; return Promise.resolve(); }
+    return fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+      .then(function (d) { me = d.user; })
+      .catch(function () { me = null; setToken(null); });
+  }
+
+  function renderSignIn() {
+    if (me) { location.hash = '#/'; return; }
+    var error = el('div', { class: 'error', role: 'alert' });
+    var email = el('input', { type: 'email', placeholder: 'you@example.com', required: 'required', autocomplete: 'email', 'aria-label': 'Your email' });
+    var go = el('button', { class: 'primary', type: 'submit', text: 'Send me a code' });
+    var form = el('form', { class: 'card' }, [
+      el('h2', { text: 'Sign in' }),
+      el('p', { text: 'Type your email and we will send you a 6-digit code. No password needed. Your email is never shown to others.' }),
+      email, error, go
+    ]);
+
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      error.textContent = '';
+      go.disabled = true;
+      post('/api/auth/request-code', { email: email.value }).then(function () {
+        askForCode(email.value.trim());
+      }).catch(function (err) {
+        error.textContent = err.message; go.disabled = false;
+      });
+    };
+    show([form]);
+    email.focus();
+  }
+
+  function askForCode(address) {
+    var error = el('div', { class: 'error', role: 'alert' });
+    var code = el('input', { class: 'code', type: 'text', inputmode: 'numeric', maxlength: '6', autocomplete: 'one-time-code', placeholder: '000000', required: 'required', 'aria-label': '6-digit code' });
+    var go = el('button', { class: 'primary', type: 'submit', text: 'Sign in' });
+    var again = el('button', { class: 'link', type: 'button', text: 'Use a different email' });
+    again.onclick = renderSignIn;
+    var form = el('form', { class: 'card' }, [
+      el('h2', { text: 'Check your email' }),
+      el('p', { text: 'We sent a 6-digit code to ' + address + '. It works for 10 minutes.' }),
+      code, error, go, again
+    ]);
+    form.onsubmit = function (e) {
+      e.preventDefault();
+      error.textContent = '';
+      go.disabled = true;
+      post('/api/auth/verify-code', { email: address, code: code.value }).then(function (d) {
+        setToken(d.token); me = d.user; renderAccount(); location.hash = '#/';
+      }).catch(function (err) {
+        error.textContent = err.message; go.disabled = false;
+      });
+    };
+    show([form]);
+    code.focus();
+  }
+
   function route() {
     var m = location.hash.match(/^#\/topic\/(\d+)$/);
-    if (m) renderTopic(m[1]); else renderList();
+    if (m) renderTopic(m[1]);
+    else if (location.hash === '#/signin') renderSignIn();
+    else renderList();
   }
   window.addEventListener('hashchange', route);
-  route();
+  loadMe().then(function () { renderAccount(); route(); });
 })();

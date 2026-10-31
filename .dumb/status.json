@@ -1,7 +1,7 @@
 {
   "step": "build",
   "state": "done",
-  "said": "The board now shows real topics. It opens with a welcome topic, and you can click it to read it and its reply. Everything is saved in a file on this computer, so it is still there next time.",
-  "task": "T2",
-  "see": "Open it: the board lists a welcome topic. Click it to read it and its reply, then use the arrow at the top to go back."
+  "said": "People can now sign in with just their email and a 6-digit code. The code appears in a test mailbox page while you try it out, and a signed-in person is shown by a short name, never their email.",
+  "task": "T3",
+  "see": "Open it, press Sign in and type any email. Open the test mailbox link on the demo page to see the code, type it in, and the board shows 'Signed in as' with your name."
 }

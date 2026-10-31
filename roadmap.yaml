@@ -18,7 +18,7 @@ phases:
         see: "Open it: the board lists a welcome topic. Click it to read it and its reply."
       - id: T3
         title: "Sign in with your email and a 6-digit code (test mailbox shows the code)"
-        status: pending
+        status: done
         effort: 2
         depends_on: [T2]
         see: "Open it, press Sign in and type any email. Open the test mailbox link to see the code, type it in, and the board shows you're signed in."
