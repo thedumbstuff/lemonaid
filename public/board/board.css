@@ -86,7 +86,7 @@ header { flex-wrap: wrap; }
   button.link { min-height: 0; padding: 6px 0; }
   button.small { min-height: 34px; }
   .bar { flex-direction: column; align-items: stretch; }
-  .filters select { flex: 1 1 30%; min-width: 0; }
+  .filters select { flex: 1 1 auto; } /* they wrap rather than cut their words off */
   .bar > .primary { width: 100%; }
   .topic-row { gap: 8px; padding: 10px; }
   .vote { min-width: 40px; }
