@@ -56,7 +56,8 @@ To match your site, add your main colour:
 <script src="https://board.example.com/lemonaid.js" data-color="#0a7e5a"></script>
 ```
 
-The demo page at your board's address has a colour picker that writes this line for you.
+While you try it out, the demo page at your board's address has a colour picker that writes this
+line for you. Online (`NODE_ENV=production`) the board's address opens the board itself.
 
 ## Put it online for real
 
@@ -79,6 +80,26 @@ read from the environment, or from a file called `.env` next to `package.json` (
 | `ACCENT_COLOR` | Default main colour like `"#0a7e5a"` (keep the quotes in a `.env` file), if the embed line has no `data-color`. | No |
 | `ANTHROPIC_API_KEY` | Allows the optional AI check (see below). | No |
 | `AI_MODEL` | Which Claude model the AI check uses (default `claude-opus-5-5`). | No |
+| `SECRETS_FILE` | A JSON file of settings, like `{"SMTP_URL": "...", "ANTHROPIC_API_KEY": "..."}`, for servers that hand secrets over as files. A setting in the environment wins over the file. | No |
+
+**With Docker.** The `Dockerfile` builds an image that starts with online settings
+(`NODE_ENV=production`), keeps everything in `/data` and runs as user 10001, so the container
+can have a read-only file system:
+
+```
+docker build -t lemonaid .
+docker run -d -p 3000:3000 -v lemonaid-data:/data \
+  -e OWNER_EMAIL=you@yourdomain.com -e PUBLIC_URL=https://board.yourdomain.com -e TRUST_PROXY=1 \
+  -e SECRETS_FILE=/run/secrets/lemonaid.json -v /path/to/lemonaid.json:/run/secrets/lemonaid.json:ro \
+  lemonaid
+```
+
+Put `SMTP_URL` (and `ANTHROPIC_API_KEY`, if you use the AI check) in that JSON file rather than
+on the command line.
+
+**Behind Cloudflare or several proxies**, `TRUST_PROXY=1` counts the nearest proxy as the visitor.
+Use `TRUST_PROXY=loopback,uniquelocal` when every proxy in front of Lemonaid has a private
+address, or the number of proxies (for example `2`).
 
 **Important:** always set `NODE_ENV=production` online. As a safety net, the test mailbox only ever
 opens for someone at the same computer (never through a proxy) and closes once `SMTP_URL` is set,

@@ -1,3 +1,9 @@
+const { loadSettingsFile } = require('./settings');
+
+// Settings from SECRETS_FILE first, so everything below sees them (names only are printed).
+const fromFile = loadSettingsFile();
+if (fromFile.length) console.log(`Settings read from SECRETS_FILE: ${fromFile.join(', ')}`);
+
 const { createApp } = require('./app');
 
 const port = Number(process.env.PORT) || 3000;

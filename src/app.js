@@ -103,8 +103,11 @@ ${items || '<p>No emails yet.</p>'}</body></html>`);
     });
   }
 
-  // The demo website (what an owner's own site would look like).
-  app.use('/', express.static(path.join(pub, 'demo')));
+  // The demo website (what an owner's own site would look like), while trying it out.
+  // Online the board's own address opens the board: visitors who follow a link from an
+  // email, or type the address, should not land on a pretend product website.
+  if (tryOutMode) app.use('/', express.static(path.join(pub, 'demo')));
+  else app.get('/', (req, res) => res.redirect(302, '/board/'));
   // The board itself, shown inside a frame on the owner's site.
   // The board only runs its own files: even if harmful code slipped into a post, the
   // browser would refuse to run it. Any site may show the board in a frame (that is the point).

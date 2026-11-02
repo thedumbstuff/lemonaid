@@ -96,7 +96,7 @@ function seedWelcome(db) {
     )
     .get(
       'Welcome to the board!',
-      'This is a public space for questions, ideas and problems.\n\nEveryone can read it. Soon you will be able to sign in with just your email and join in.',
+      'This is a public space for questions, ideas and problems.\n\nEveryone can read it. To post, reply or vote, sign in with just your email.',
       'idea',
       'open',
       user.id

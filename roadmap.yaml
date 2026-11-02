@@ -1,6 +1,6 @@
 project: "Lemonaid"
 tagline: "A public discussion and issues board any website can add with one line"
-updated: 2026-10-31
+updated: 2026-11-02
 phases:
   - id: P1
     name: "First version"
@@ -80,3 +80,15 @@ phases:
         effort: 1
         depends_on: [T8]
         see: "Open it, sign in (not as the owner) and start 5 topics. The 6th is refused with a note saying when you can post again. Replying still works."
+      - id: T13
+        title: "Run it on a server: Docker image, settings from a secrets file, the address opens the board online"
+        status: done
+        effort: 1
+        depends_on: [T11]
+        see: "docker build -t lemonaid . and run it with SECRETS_FILE pointing at a JSON file: it reports the setting names it read, the address goes straight to the board, and the test mailbox is gone."
+      - id: T14
+        title: "First real board: ideas for ContextWire on thedumbstuff.page"
+        status: building
+        effort: 1
+        depends_on: [T13]
+        see: "Open https://thedumbstuff.page/contextwire/#ideas: the board sits at the bottom of the page, in the site's yellow. Sign in with your email, post an idea, and it shows on the board."
