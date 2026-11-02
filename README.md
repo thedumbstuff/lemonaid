@@ -16,6 +16,7 @@ data, your rules.
 - **Sign in with an email code.** No passwords. Emails are never shown to other people, only a
   short name made from the first part of the address (`ana.smith@example.com` shows as `ana.smith`).
 - **Topics and replies** labelled Bug, Idea or Question, with **bold**, links, `code` and code blocks.
+- **Up to 5 new topics a day per person** (replies are not limited; the owner has no limit). Change it with `TOPICS_PER_DAY`.
 - **Paste screenshots** straight into a post (PNG, JPEG, GIF, WebP, up to 5 MB).
 - **Upvotes**, sorting by most wanted or newest, and filters by label and status.
 - **Statuses** (open, planned, fixed) that only the owner can set.
@@ -74,6 +75,7 @@ read from the environment, or from a file called `.env` next to `package.json` (
 | `TRUST_PROXY=1` | Set when you are behind a reverse proxy, so limits count each visitor, not the proxy. | If you use a proxy |
 | `PORT` | Port to listen on (default 3000). | No |
 | `DATA_DIR` | Where the database and pictures live (default `./data`). | No |
+| `TOPICS_PER_DAY` | How many topics one person may start in any 24 hours (default 5). Replies are not limited. | No |
 | `ACCENT_COLOR` | Default main colour like `"#0a7e5a"` (keep the quotes in a `.env` file), if the embed line has no `data-color`. | No |
 | `ANTHROPIC_API_KEY` | Allows the optional AI check (see below). | No |
 | `AI_MODEL` | Which Claude model the AI check uses (default `claude-opus-5-5`). | No |

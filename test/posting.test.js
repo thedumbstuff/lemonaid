@@ -4,7 +4,7 @@ const { createApp } = require('../src/app');
 
 let server, base, db, token;
 test.before(async () => {
-  const app = createApp({ dbFile: ':memory:' });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:' });
   db = app.locals.db;
   await new Promise((resolve) => { server = app.listen(0, resolve); });
   base = `http://127.0.0.1:${server.address().port}`;

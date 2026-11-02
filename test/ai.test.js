@@ -34,7 +34,7 @@ const overview = async () => (await send('GET', '/api/admin/overview', undefined
 const setAi = (enabled) => send('POST', '/api/admin/ai', { enabled }, tokens.owner);
 
 test.before(async () => {
-  const app = createApp({ dbFile: ':memory:', ownerEmail: OWNER, aiClient: fakeClient });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:', ownerEmail: OWNER, aiClient: fakeClient });
   db = app.locals.db;
   await new Promise((resolve) => { server = app.listen(0, resolve); });
   base = `http://127.0.0.1:${server.address().port}`;
@@ -140,7 +140,7 @@ test('switched off again: nothing is sent', async () => {
 test('without a key the switch cannot be turned on, and the board explains', async () => {
   const saved = process.env.ANTHROPIC_API_KEY;
   delete process.env.ANTHROPIC_API_KEY;
-  const app = createApp({ dbFile: ':memory:', ownerEmail: OWNER });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:', ownerEmail: OWNER });
   const s = await new Promise((resolve) => { const x = app.listen(0, () => resolve(x)); });
   const url = `http://127.0.0.1:${s.address().port}`;
   const own = app.locals.db;

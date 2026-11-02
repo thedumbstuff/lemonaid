@@ -20,7 +20,7 @@ const newTopic = async (title, label) =>
 const titles = async (q = '', auth) => (await (await send('GET', '/api/topics' + q, undefined, auth)).json()).topics.map((t) => t.title);
 
 test.before(async () => {
-  const app = createApp({ dbFile: ':memory:' });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:' });
   db = app.locals.db;
   await new Promise((resolve) => { server = app.listen(0, resolve); });
   base = `http://127.0.0.1:${server.address().port}`;

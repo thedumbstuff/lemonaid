@@ -1,11 +1,35 @@
 {
   "findings": [
-    { "level": "must", "plain": "If someone forgot to switch off try-out mode online, anyone on the internet could open the test mailbox, read the owner's sign-in code and take over the board. Now the test mailbox only opens for someone at the same computer, and closes as soon as a real email service is set up.", "fixed": true },
-    { "level": "should", "plain": "In try-out mode, a broken request showed an error page with the program's insides (file paths on this computer). Errors are now a short plain message.", "fixed": true },
-    { "level": "should", "plain": "The board pages had no extra browser lock against harmful code. They now tell the browser to run only the board's own code, so even a slipped-through trick in a post could not run.", "fixed": true },
-    { "level": "should", "plain": "There is no limit on how many posts, replies or votes one signed-in person can make per hour. A spammer could flood the board until you block them in the Owner's room. Worth adding later with Change something.", "fixed": false },
-    { "level": "should", "plain": "Sign-ins never expire. Sign out ends it on that device, and blocking a person stops their posting, but there is no automatic time-out yet.", "fixed": false },
-    { "level": "should", "plain": "Pasted pictures stay on the server even when a post is deleted, and many accounts together could slowly fill the disk. Keep an eye on the data folder size.", "fixed": false }
+    {
+      "level": "must",
+      "plain": "If someone forgot to switch off try-out mode online, anyone on the internet could open the test mailbox, read the owner's sign-in code and take over the board. Now the test mailbox only opens for someone at the same computer, and closes as soon as a real email service is set up.",
+      "fixed": true
+    },
+    {
+      "level": "should",
+      "plain": "In try-out mode, a broken request showed an error page with the program's insides (file paths on this computer). Errors are now a short plain message.",
+      "fixed": true
+    },
+    {
+      "level": "should",
+      "plain": "The board pages had no extra browser lock against harmful code. They now tell the browser to run only the board's own code, so even a slipped-through trick in a post could not run.",
+      "fixed": true
+    },
+    {
+      "level": "should",
+      "plain": "Each person can now start at most 5 topics a day. Replies and votes are still not limited, so a spammer could still flood replies until you block them in the Owner's room.",
+      "fixed": false
+    },
+    {
+      "level": "should",
+      "plain": "Sign-ins never expire. Sign out ends it on that device, and blocking a person stops their posting, but there is no automatic time-out yet.",
+      "fixed": false
+    },
+    {
+      "level": "should",
+      "plain": "Pasted pictures stay on the server even when a post is deleted, and many accounts together could slowly fill the disk. Keep an eye on the data folder size.",
+      "fixed": false
+    }
   ],
   "ok": [
     "No passwords, keys or tokens in the code or anywhere in its history (the checks use an obviously fake key, sk-ant-test).",
@@ -58,5 +82,5 @@
       ]
     }
   ],
-  "said": "Fixed 1 must and 2 smaller safety problems. 3 things to know (no posting limits yet, sign-ins never expire, pictures can pile up). Ready to put online."
+  "said": "Fixed 1 must and 2 smaller safety problems, and topics are now limited to 5 a day per person. 3 things to know (replies are not limited, sign-ins never expire, pictures can pile up). Ready to put online."
 }

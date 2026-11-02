@@ -19,6 +19,7 @@ const escapeHtml = (s) =>
 // options.publicUrl: the web address of this board, used in emails (default: PUBLIC_URL, or http://localhost:3000).
 // options.smtpUrl, options.mailFrom, options.mailTransport: how to send real email (see mailer.js).
 // options.aiClient: a ready-made Anthropic client (for the checks); otherwise ANTHROPIC_API_KEY is used.
+// options.topicsPerDay: topics one person may start in any 24 hours (default: TOPICS_PER_DAY, or 5).
 // options.testMailbox: show the test mailbox page (default: on, except in production).
 // "#e0a800", "e0a800" or "#0a8" -> "e0a800" / "00aa88"; anything else -> null.
 function hexColour(value) {
@@ -66,7 +67,10 @@ function createApp(options = {}) {
   // Only in try-out mode: tells the demo page which email to use to try the owner's tools.
   const accent = hexColour(options.accent ?? process.env.ACCENT_COLOR);
   app.get('/api/config', (req, res) => res.json({ demoOwnerEmail: usingDemoOwner ? ownerEmail : null, accent }));
-  app.use('/api', createApi(db, ownerEmail, notifier, ai));
+  // How many topics one person may start in any 24 hours (default 5).
+  const perDay = Number(options.topicsPerDay ?? process.env.TOPICS_PER_DAY ?? 5);
+  const topicsPerDay = Number.isInteger(perDay) && perDay > 0 ? perDay : 5;
+  app.use('/api', createApi(db, ownerEmail, notifier, ai, topicsPerDay));
 
   // The test mailbox: shows the emails Lemonaid "sent", so you can try sign-in without an
   // email account. Never shown in production.

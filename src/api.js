@@ -7,7 +7,7 @@ const LABELS = ['bug', 'idea', 'question'];
 const MAX_TITLE = 120;
 const MAX_BODY = 10000;
 
-function createApi(db, ownerEmail = '', notifier = null, ai = null) {
+function createApi(db, ownerEmail = '', notifier = null, ai = null, topicsPerDay = 5) {
   const isOwner = (user) => !!user && !!ownerEmail && user.email === ownerEmail;
   const api = express.Router();
 
@@ -123,6 +123,20 @@ function createApi(db, ownerEmail = '', notifier = null, ai = null) {
     if (!LABELS.includes(label)) return res.status(400).json({ error: 'Please pick a label: bug, idea or question.' });
     const problem = bodyProblem(body);
     if (problem) return res.status(400).json({ error: problem });
+    // Each person may start a limited number of topics in any 24 hours (the owner has no limit).
+    // Held and deleted topics count too, so deleting does not make room for more spam.
+    if (!isOwner(req.user)) {
+      const recent = db
+        .prepare("SELECT COUNT(*) AS n, MIN(created_at) AS oldest FROM topics WHERE user_id = ? AND created_at > datetime('now', '-1 day')")
+        .get(req.user.id);
+      if (recent.n >= topicsPerDay) {
+        const freeAt = new Date(recent.oldest.replace(' ', 'T') + 'Z').getTime() + 24 * 60 * 60 * 1000;
+        const hours = Math.max(1, Math.ceil((freeAt - Date.now()) / (60 * 60 * 1000)));
+        return res.status(429).json({
+          error: `You can start ${topicsPerDay} topics a day. You can start another one in about ${hours} hour${hours === 1 ? '' : 's'}. Replying is still open.`,
+        });
+      }
+    }
     const verdict = checkText(cleanTitle, body);
     if (!verdict.ok) return res.status(422).json({ error: verdict.reason });
 

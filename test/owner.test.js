@@ -22,7 +22,7 @@ const visibleTitles = async () => (await (await send('GET', '/api/topics')).json
 const userId = (email) => db.prepare('SELECT id FROM users WHERE email = ?').get(email).id;
 
 test.before(async () => {
-  const app = createApp({ dbFile: ':memory:', ownerEmail: OWNER });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:', ownerEmail: OWNER });
   db = app.locals.db;
   await new Promise((resolve) => { server = app.listen(0, resolve); });
   base = `http://127.0.0.1:${server.address().port}`;
@@ -141,7 +141,7 @@ test('only the owner sees who wrote a post, and email addresses', async () => {
 });
 
 test('without an owner set, nobody is the owner (production)', async () => {
-  const app = createApp({ dbFile: ':memory:', testMailbox: false });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:', testMailbox: false });
   const s = await new Promise((resolve) => { const x = app.listen(0, () => resolve(x)); });
   const url = `http://127.0.0.1:${s.address().port}`;
   const config = await (await fetch(url + '/api/config')).json();
@@ -152,7 +152,7 @@ test('without an owner set, nobody is the owner (production)', async () => {
 });
 
 test('in try-out mode the demo page is told which email is the owner', async () => {
-  const app = createApp({ dbFile: ':memory:' });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:' });
   const s = await new Promise((resolve) => { const x = app.listen(0, () => resolve(x)); });
   const config = await (await fetch(`http://127.0.0.1:${s.address().port}/api/config`)).json();
   s.close();

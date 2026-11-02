@@ -11,7 +11,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
 
 test.before(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lemonaid-img-'));
-  const app = createApp({ dbFile: ':memory:', imagesDir: dir });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:', imagesDir: dir });
   db = app.locals.db;
   await new Promise((resolve) => { server = app.listen(0, resolve); });
   base = `http://127.0.0.1:${server.address().port}`;

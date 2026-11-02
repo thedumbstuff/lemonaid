@@ -71,3 +71,12 @@ phases:
         effort: 2
         depends_on: [T8, T9]
         see: "Open it: the demo page lets you try a colour and the board changes to match. Make the window narrow like a phone and it still reads well. The project has a clear setup guide and an MIT licence."
+  - id: P2
+    name: "Changes after the first version"
+    tasks:
+      - id: T12
+        title: "At most 5 new topics a day per person (replies not limited)"
+        status: done
+        effort: 1
+        depends_on: [T8]
+        see: "Open it, sign in (not as the owner) and start 5 topics. The 6th is refused with a note saying when you can post again. Replying still works."

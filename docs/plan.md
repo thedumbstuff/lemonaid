@@ -29,7 +29,8 @@ signed in on that device. You can also turn reply emails off here.
 ### Write a topic
 A title, a label, and a text box. Paste a screenshot straight in, or add a link or a piece
 of code. A preview shows how it will look. If the bad-word check stops it, it says why in
-a friendly way.
+a friendly way. Each person can start up to 5 topics in any 24 hours (the owner has no
+limit; replies are not limited). The 6th says kindly when they can post again.
 
 ### Owner's room
 Only for the owner, whose email is set in the settings. It lists posts the checks held

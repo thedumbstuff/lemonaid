@@ -24,7 +24,7 @@ const newTopic = async (who, title = 'My topic') =>
 const userId = (email) => db.prepare('SELECT id FROM users WHERE email = ?').get(email).id;
 
 test.before(async () => {
-  const app = createApp({ dbFile: ':memory:', ownerEmail: 'boss@example.com', publicUrl: 'https://board.example.com/' });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:', ownerEmail: 'boss@example.com', publicUrl: 'https://board.example.com/' });
   db = app.locals.db;
   await new Promise((resolve) => { server = app.listen(0, resolve); });
   base = `http://127.0.0.1:${server.address().port}`;
@@ -128,7 +128,7 @@ test('with no email service set up in production, sending fails clearly (never p
   assert.equal(mailer.mode, 'off');
   await assert.rejects(() => mailer.send({ to: 'x@example.com', subject: 'Hi', body: 'There' }), /not set up/);
 
-  const app = createApp({ dbFile: ':memory:', testMailbox: false, ownerEmail: 'boss@example.com' });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:', testMailbox: false, ownerEmail: 'boss@example.com' });
   const s = await new Promise((resolve) => { const x = app.listen(0, () => resolve(x)); });
   const res = await fetch(`http://127.0.0.1:${s.address().port}/api/auth/request-code`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'a@example.com' }),
@@ -140,7 +140,7 @@ test('with no email service set up in production, sending fails clearly (never p
 
 test('a failing email service does not break posting a reply', async () => {
   const transport = { sendMail: async () => { throw new Error('service down'); } };
-  const app = createApp({ dbFile: ':memory:', ownerEmail: 'boss@example.com', mailTransport: transport });
+  const app = createApp({ topicsPerDay: 1000, dbFile: ':memory:', ownerEmail: 'boss@example.com', mailTransport: transport });
   const own = app.locals.db;
   const s = await new Promise((resolve) => { const x = app.listen(0, () => resolve(x)); });
   const url = `http://127.0.0.1:${s.address().port}`;

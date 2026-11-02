@@ -1,5 +1,6 @@
 {
-  "step": "ship",
+  "step": "change",
   "state": "done",
-  "said": "Fixed 1 must and 2 smaller safety problems. 3 things to know (no posting limits yet, sign-ins never expire, pictures can pile up). Ready to put online."
+  "said": "Each person can now start at most 5 new topics a day. The 6th is refused with a friendly note saying when they can post again. Replies and votes are not limited, the owner has no limit, and deleted topics still count so they cannot be used to make room. The number can be changed with the TOPICS_PER_DAY setting.",
+  "see": "Open it, sign in with any email (not the owner one) and start 5 topics. The 6th says 'You can start 5 topics a day. You can start another one in about 24 hours.' Replying still works."
 }
