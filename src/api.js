@@ -55,7 +55,20 @@ function createApi(db, ownerEmail = '', notifier = null, ai = null, topicsPerDay
 
   const STATUSES = ['open', 'planned', 'fixed'];
 
-  // The board: sort=top (most wanted) or new; optional label= and status= filters.
+  // A short plain-text line for the topic list, like the last message under a chat's name.
+  function snippet(md, max = 90) {
+    const text = String(md || '')
+      .replace(/```[\s\S]*?(```|$)/g, ' [code] ')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, ' 📷 Picture ')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/[`*_~#>]+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return text.length > max ? text.slice(0, max - 1).trimEnd() + '…' : text;
+  }
+
+  // The board: sort=top (most wanted), new (newest topics) or active (latest message first);
+  // optional label= and status= filters. Each topic comes with its latest message.
   api.get('/topics', (req, res) => {
     const me = userFromRequest(db, req);
     const where = ["t.state = 'visible'"];
@@ -64,19 +77,32 @@ function createApi(db, ownerEmail = '', notifier = null, ai = null, topicsPerDay
     if (STATUSES.includes(req.query.status)) { where.push('t.status = ?'); args.push(req.query.status); }
     const order = req.query.sort === 'new'
       ? 't.created_at DESC, t.id DESC'
-      : 'vote_count DESC, t.created_at DESC, t.id DESC';
+      : req.query.sort === 'active'
+        ? 'last_at DESC, t.id DESC'
+        : 'vote_count DESC, t.created_at DESC, t.id DESC';
     const topics = db
       .prepare(
-        `SELECT t.id, t.title, t.label, t.status, t.created_at, u.name AS author,
+        `SELECT t.id, t.title, t.label, t.status, t.created_at, u.name AS author, t.body,
+                lr.body AS last_body, lu.name AS last_author, lr.created_at AS last_reply_at,
+                COALESCE(lr.created_at, t.created_at) AS last_at,
                 (SELECT COUNT(*) FROM replies r WHERE r.topic_id = t.id AND r.state = 'visible') AS reply_count,
                 (SELECT COUNT(*) FROM votes v WHERE v.topic_id = t.id) AS vote_count,
                 EXISTS (SELECT 1 FROM votes v WHERE v.topic_id = t.id AND v.user_id = ?) AS voted
          FROM topics t JOIN users u ON u.id = t.user_id
+         LEFT JOIN replies lr ON lr.id = (
+           SELECT r.id FROM replies r WHERE r.topic_id = t.id AND r.state = 'visible' ORDER BY r.created_at DESC, r.id DESC LIMIT 1)
+         LEFT JOIN users lu ON lu.id = lr.user_id
          WHERE ${where.join(' AND ')}
          ORDER BY ${order}`
       )
       .all(...args)
-      .map((t) => ({ ...t, voted: !!t.voted }));
+      .map(({ body, last_body, last_author, last_reply_at, ...t }) => ({
+        ...t,
+        voted: !!t.voted,
+        last: last_reply_at
+          ? { author: last_author, text: snippet(last_body), at: last_reply_at }
+          : { author: t.author, text: snippet(body), at: t.created_at },
+      }));
     res.json({ topics });
   });
 
@@ -95,22 +121,28 @@ function createApi(db, ownerEmail = '', notifier = null, ai = null, topicsPerDay
     const me = userFromRequest(db, req);
     const topic = db
       .prepare(
-        `SELECT t.id, t.title, t.body, t.label, t.status, t.created_at, u.name AS author, u.id AS author_id
+        `SELECT t.id, t.title, t.body, t.label, t.status, t.created_at, u.name AS author, u.id AS author_id, u.email AS author_email
          FROM topics t JOIN users u ON u.id = t.user_id WHERE t.id = ? AND t.state = 'visible'`
       )
       .get(id);
     if (!topic) return res.status(404).json({ error: 'No such topic.' });
     const replies = db
       .prepare(
-        `SELECT r.id, r.body, r.created_at, u.name AS author, u.id AS author_id
+        `SELECT r.id, r.body, r.created_at, u.name AS author, u.id AS author_id, u.email AS author_email
          FROM replies r JOIN users u ON u.id = r.user_id
          WHERE r.topic_id = ? AND r.state = 'visible' ORDER BY r.created_at, r.id`
       )
       .all(id);
     topic.vote_count = db.prepare('SELECT COUNT(*) AS n FROM votes WHERE topic_id = ?').get(id).n;
     topic.voted = !!(me && db.prepare('SELECT 1 FROM votes WHERE topic_id = ? AND user_id = ?').get(id, me.id));
-    // Who wrote a post is only for the owner's tools (to flag or block them).
-    const forMe = (row) => (isOwner(me) ? row : { ...row, author_id: undefined });
+    // Who wrote a post is only for the owner's tools (to flag or block them). Everyone is told
+    // which posts are their own and which are the owner's, never anyone's email.
+    const forMe = ({ author_email, ...row }) => ({
+      ...row,
+      author_id: isOwner(me) ? row.author_id : undefined,
+      mine: !!me && row.author_id === me.id,
+      by_owner: !!ownerEmail && author_email === ownerEmail,
+    });
     res.json({ topic: forMe(withHtml(topic)), replies: replies.map(withHtml).map(forMe) });
   });
 

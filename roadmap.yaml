@@ -1,6 +1,6 @@
 project: "Lemonaid"
 tagline: "A public discussion and issues board any website can add with one line"
-updated: 2026-11-02
+updated: 2026-11-03
 phases:
   - id: P1
     name: "First version"
@@ -92,3 +92,15 @@ phases:
         effort: 1
         depends_on: [T13]
         see: "Open https://thedumbstuff.page/contextwire/#ideas: the board sits at the bottom of the page, in the site's yellow. Sign in with your email, post an idea, and it shows on the board."
+      - id: T15
+        title: "Chat-style board: topics like chats, topic pinned on top, replies below"
+        status: done
+        effort: 3
+        depends_on: [T11]
+        see: "Open it: topics are listed like chats with their latest message. Open one: the topic is pinned at the top, replies are chat bubbles below, and you write at the bottom. Make the window narrow: one side at a time, with a back arrow."
+      - id: T16
+        title: "Sign in: the code button locks after one press, with a 30-second resend"
+        status: done
+        effort: 1
+        depends_on: [T3]
+        see: "Open it, press Sign in, type an email and press Send me a code: the button greys out and says Sending the code. On the next screen, Send a new code unlocks after 30 seconds."

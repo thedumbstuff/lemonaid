@@ -68,16 +68,13 @@ test('the one line adds the board, with the owner\'s colour when given', () => {
   assert.equal(runEmbed({ 'data-color': '"><script>' }).frame.src, 'https://board.example.com/board/');
 });
 
-test('the frame grows to the board height, but only when the board itself says so', () => {
-  const { frame, send } = runEmbed({});
-  send({ source: frame.contentWindow, origin: 'https://board.example.com', data: { lemonaid: 'height', height: 900.2 } });
-  assert.equal(frame.style.height, '901px');
-  send({ source: { id: 'someone else' }, origin: 'https://board.example.com', data: { lemonaid: 'height', height: 5000 } });
-  send({ source: frame.contentWindow, origin: 'https://evil.example', data: { lemonaid: 'height', height: 5000 } });
-  send({ source: frame.contentWindow, origin: 'https://board.example.com', data: { lemonaid: 'height', height: 'tall' } });
-  assert.equal(frame.style.height, '901px');
-  send({ source: frame.contentWindow, origin: 'https://board.example.com', data: { lemonaid: 'height', height: 100 } });
-  assert.equal(frame.style.height, '520px'); // never smaller than the minimum
+test('the board is a chat window of a set height, which the owner can change', () => {
+  const height = (attrs) => /height:(\d+)px/.exec(runEmbed(attrs).frame.style.cssText)[1];
+  assert.equal(height({}), '640');
+  assert.equal(height({ 'data-height': '800' }), '800');
+  // junk or silly sizes fall back to the normal height
+  for (const bad of ['10', '99999', 'tall', '700px;background:red', '-5']) assert.equal(height({ 'data-height': bad }), '640', bad);
+  assert.match(runEmbed({}).frame.style.cssText, /max-height:90vh/); // fits on a phone screen
 });
 
 test('the board is built to fit phones', () => {
@@ -86,6 +83,8 @@ test('the board is built to fit phones', () => {
   assert.match(css, /font-size: 16px/); // stops phones zooming into boxes
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'board', 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="width=device-width, initial-scale=1"/);
+  assert.match(css, /@media \(max-width: 640px\)/); // one side at a time, like a chat app on a phone
+  assert.match(css, /button:disabled/); // a pressed button looks pressed (like "Send me a code")
 });
 
 test('responses say not to guess the file type', async () => {

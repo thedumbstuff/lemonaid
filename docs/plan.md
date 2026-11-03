@@ -12,18 +12,27 @@ A pretend product website with the board placed on it using the one line, plus t
 ready to copy. This is what opens when you press **Open it**, so you see exactly what an
 owner's visitors will see.
 
+The board looks like a chat app (like WhatsApp): the topic list on the left, the open topic
+on the right. On a phone or in a narrow column, one side shows at a time, with a back arrow.
+Inside a website it is a window 640 pixels tall (the owner can change it).
+
 ### The board (topic list)
-Every topic, with its label (bug, idea, question), status (open, planned, fixed), upvotes
-and number of replies. Sort by most wanted or newest, filter by label or status, and a
-**New topic** button. Anyone can read it without signing in.
+Every topic, listed like a chat: an icon for its label (bug, idea, question), its title, its
+latest message and when, its upvotes and status, and how many new replies you have not seen.
+Sort by latest activity, most wanted or newest, filter by label or status, search, and a
+**New** button. Anyone can read it without signing in.
 
 ### A topic
-The topic and all its replies, with text, links, code and screenshots shown neatly. You
-can upvote it and write a reply. The owner also sees buttons to change the status, delete
+Like a group chat: the topic is pinned at the top (long ones fold, with "Show all"), and the
+discussion is below it as chat bubbles, yours on the right, with the day between them. You
+write at the bottom (Enter sends, a paperclip adds a picture), and new replies appear by
+themselves. You can upvote it from the top bar. The owner also sees buttons to change the status, delete
 posts and flag the person who wrote them.
 
 ### Sign in
-Type your email, get a 6-digit code, type the code. That's it, with no passwords. You stay
+Type your email, get a 6-digit code, type the code. That's it, with no passwords. The button
+locks and says "Sending the code…" after one press, typing the 6th digit signs you in, and a
+new code can be asked for after 30 seconds. You stay
 signed in on that device. You can also turn reply emails off here.
 
 ### Write a topic

@@ -7,8 +7,14 @@
 <link rel="stylesheet" href="board.css">
 </head>
 <body>
-  <header><a class="brand" href="#/">🍋 Lemonaid</a><span id="account"></span></header>
-  <main id="app" aria-live="polite">Loading…</main>
+  <div class="app" id="shell">
+    <aside class="side" aria-label="Topics">
+      <header class="side-head"><a class="brand" href="#/">🍋 Lemonaid</a><span id="account"></span></header>
+      <div class="tools" id="tools"></div>
+      <nav class="chat-list" id="list">Loading…</nav>
+    </aside>
+    <main class="pane" id="app"></main>
+  </div>
   <script src="board.js"></script>
 </body>
 </html>

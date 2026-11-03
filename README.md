@@ -10,20 +10,50 @@ check keeps rude posts out.
 You run your own copy. There is no shared service and no sign-up with us: your board, your
 data, your rules.
 
+## What it looks like
+
+It works like a chat app. Topics are listed like chats, with their latest message. Open one
+and the topic is pinned at the top, with the discussion below it as chat bubbles.
+
+![The board: topics on the left, the open topic pinned at the top and the discussion below](docs/screenshots/chat.png)
+
+On a phone (or in a narrow column) it shows one side at a time:
+
+<p>
+  <img src="docs/screenshots/phone-list.png" alt="The topic list on a phone" width="300">
+  <img src="docs/screenshots/phone-chat.png" alt="A topic's discussion on a phone" width="300">
+</p>
+
+The owner gets a status picker and delete and flag buttons right in the discussion:
+
+![The owner's tools in a topic](docs/screenshots/owner.png)
+
+Signing in takes an email and a 6-digit code. The buttons lock while a code is on its way,
+and a new code can be asked for after 30 seconds:
+
+![Typing the sign-in code](docs/screenshots/sign-in.png)
+
+Added to a website with one line, it sits in the page like this:
+
+![The board inside a website](docs/screenshots/embedded.png)
+
 ## What it does
 
 - **Read without signing in.** Topics, replies, votes and statuses are all public.
 - **Sign in with an email code.** No passwords. Emails are never shown to other people, only a
   short name made from the first part of the address (`ana.smith@example.com` shows as `ana.smith`).
+- **Chat-style board.** Topics listed like chats with their latest message and an unread count;
+  inside a topic, the topic is pinned at the top and replies show as chat bubbles (yours on the
+  right). New messages appear by themselves.
 - **Topics and replies** labelled Bug, Idea or Question, with **bold**, links, `code` and code blocks.
 - **Up to 5 new topics a day per person** (replies are not limited; the owner has no limit). Change it with `TOPICS_PER_DAY`.
 - **Paste screenshots** straight into a post (PNG, JPEG, GIF, WebP, up to 5 MB).
-- **Upvotes**, sorting by most wanted or newest, and filters by label and status.
+- **Upvotes**, sorting by latest activity, most wanted or newest, filters by label and status, and search.
 - **Statuses** (open, planned, fixed) that only the owner can set.
 - **Reply emails** to the topic's author, with a one-click way to turn them off.
 - **Owner's room:** delete and restore posts, flag people (their posts wait for you) or block them.
 - **Rude-post check:** a built-in bad-word check, plus an optional AI check you can switch on.
-- **Fits your site:** one colour you choose, works on phones, grows to the height of the board.
+- **Fits your site:** one colour you choose, a height you choose, and works on phones.
 
 ## Try it in two minutes
 
@@ -55,6 +85,9 @@ To match your site, add your main colour:
 ```html
 <script src="https://board.example.com/lemonaid.js" data-color="#0a7e5a"></script>
 ```
+
+The board is a chat window 640 pixels tall (never taller than the screen). To change it, add
+`data-height` with a number of pixels between 320 and 2000, like `data-height="800"`.
 
 While you try it out, the demo page at your board's address has a colour picker that writes this
 line for you. Online (`NODE_ENV=production`) the board's address opens the board itself.
